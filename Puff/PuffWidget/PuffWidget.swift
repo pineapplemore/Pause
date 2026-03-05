@@ -351,7 +351,7 @@ struct PuffWidget: Widget {
         return StaticConfiguration(kind: kind, provider: PuffWidgetProvider()) { entry in
             PuffWidgetSmallView(entry: entry)
         }
-        .configurationDisplayName(isChinese ? "放屁记录" : "Puff Log")
+        .configurationDisplayName(isChinese ? "放屁记录" : "Puff Diary")
         .description(isChinese ? "今日次数与类型统计" : "Today's count and tag stats")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
