@@ -68,6 +68,8 @@ struct SettingsView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle(L10n.tabSettings(appState.isChinese))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {

@@ -84,7 +84,7 @@ struct StatisticsView: View {
                 }
                 .padding()
                 }
-                .background(Color(.systemGroupedBackground))
+                .background(Color(.systemGroupedBackground).ignoresSafeArea())
                 if !subscriptionManager.hasAccess {
                     Color.black.opacity(0.5)
                         .ignoresSafeArea()
@@ -110,6 +110,7 @@ struct StatisticsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle(L10n.reportTitle(appState.isChinese))
             .navigationBarTitleDisplayMode(.large)
             .toolbar {

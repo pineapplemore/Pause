@@ -27,6 +27,8 @@ struct ContentView: View {
                     Label(L10n.tabSettings(appState.isChinese), systemImage: "gearshape")
                 }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .tint(.accentColor)
         .environmentObject(appState)
     }

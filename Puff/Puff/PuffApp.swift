@@ -11,9 +11,14 @@ struct PuffApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(appState)
-                .onOpenURL { url in
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea(.all)
+                ContentView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .environmentObject(appState)
+            }
+            .onOpenURL { url in
                     if url.scheme == "puff", url.host == "record" {
                         var typeIds: [String] = []
                         if let comp = URLComponents(url: url, resolvingAgainstBaseURL: false),

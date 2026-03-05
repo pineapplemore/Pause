@@ -164,7 +164,8 @@ struct RecordView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .background(Color(.systemGroupedBackground))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("")
             .toolbar {

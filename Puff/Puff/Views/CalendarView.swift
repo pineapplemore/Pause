@@ -18,7 +18,8 @@ struct CalendarView: View {
         NavigationView {
             ZStack(alignment: .top) {
                 fullCalendar
-                    .background(Color(.systemGroupedBackground))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.systemGroupedBackground).ignoresSafeArea())
                 if !subscriptionManager.hasAccess {
                     Color.black.opacity(0.5)
                         .ignoresSafeArea()
@@ -44,6 +45,7 @@ struct CalendarView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle(L10n.calendarTitle(appState.isChinese))
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showPaywall) {
