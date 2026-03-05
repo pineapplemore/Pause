@@ -138,43 +138,21 @@ struct PuffWidgetSmallView: View {
         }
     }
     
-    /// iOS 17+ 小号：小屁股图，下方「X 次」，3 个胶囊标签
+    /// iOS 17+ 小号：大屁股图 + 次数，点击 +1 不打开 App（无 3 标签）
     @available(iOS 17.0, *)
     private var interactiveSmallView: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
-            Link(destination: URL(string: "puff://record")!) {
-                Image("WidgetPuffIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 36, height: 36)
-            }
-            HStack(spacing: 2) {
+            widgetTapTargetSmall
+            HStack(spacing: 4) {
                 Text("\(entry.todayCount)")
-                    .font(.title3.weight(.bold))
+                    .font(.title.weight(.bold))
                     .foregroundColor(widgetAccent)
                 Text("次")
-                    .font(.caption)
+                    .font(.title3.weight(.medium))
                     .foregroundColor(widgetAccent)
             }
-            .padding(.top, 4)
-            if !entry.favoriteTagIds.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(0..<min(3, entry.favoriteTagIds.count), id: \.self) { i in
-                        Link(destination: URL(string: "puff://record?tag=\(entry.favoriteTagIds[i].addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? entry.favoriteTagIds[i])")!) {
-                            Text(widgetTagDisplayName(tagId: entry.favoriteTagIds[i], at: i, labels: entry.favoriteTagLabels))
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(widgetAccent)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.75)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Capsule().stroke(widgetAccent, lineWidth: 1.2))
-                        }
-                    }
-                }
-                .padding(.top, 6)
-            }
+            .padding(.top, 8)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -185,6 +163,25 @@ struct PuffWidgetSmallView: View {
                 .scaledToFill()
                 .clipped()
         )
+    }
+    
+    @available(iOS 17.0, *)
+    private var widgetTapTargetSmall: AnyView {
+        #if canImport(AppIntents)
+        return AnyView(Button(intent: RecordPuffIntent()) {
+            Image("WidgetPuffIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 144, height: 144)
+        }.buttonStyle(.plain))
+        #else
+        return AnyView(Link(destination: URL(string: "puff://record")!) {
+            Image("WidgetPuffIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 144, height: 144)
+        })
+        #endif
     }
     
     /// 非 iOS 17 小号：左半总次数+当日标签统计（最多5条），右半小屁股图标
@@ -234,62 +231,29 @@ struct PuffWidgetSmallView: View {
         )
     }
     
-    /// iOS 17+ 中号：左侧 3 胶囊标签，中间小屁股图，右侧总次数+当日标签统计
+    /// iOS 17+ 中号：中间大屁股图 + 次数（点击 +1），右侧当日标签统计（无 3 胶囊标签）
     @available(iOS 17.0, *)
     private var interactiveMediumView: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                if !entry.favoriteTagIds.isEmpty {
-                    ForEach(0..<min(3, entry.favoriteTagIds.count), id: \.self) { i in
-                        Link(destination: URL(string: "puff://record?tag=\(entry.favoriteTagIds[i].addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? entry.favoriteTagIds[i])")!) {
-                            Text(widgetTagDisplayName(tagId: entry.favoriteTagIds[i], at: i, labels: entry.favoriteTagLabels))
-                                .font(.caption)
-                                .foregroundColor(widgetAccent)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.75)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(Capsule().stroke(widgetAccent, lineWidth: 1.2))
-                        }
+        HStack(spacing: 16) {
+            Spacer(minLength: 0)
+            widgetTapTargetMedium
+            Spacer(minLength: 0)
+            if !entry.todayTagDistribution.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(0..<min(5, entry.todayTagDistribution.count), id: \.self) { i in
+                        Text(tagStatsLines(entry.todayTagDistribution)[i])
+                            .font(.caption)
+                            .foregroundColor(widgetAccent.opacity(0.9))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
                     }
                 }
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Link(destination: URL(string: "puff://record")!) {
-                Image("WidgetPuffIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 56, height: 56)
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 2) {
-                    Text("\(entry.todayCount)")
-                        .font(.title2.weight(.bold))
-                        .foregroundColor(widgetAccent)
-                    Text("次")
-                        .font(.caption)
-                        .foregroundColor(widgetAccent)
-                }
-                if !entry.todayTagDistribution.isEmpty {
-                    VStack(alignment: .leading, spacing: 2) {
-                        ForEach(0..<min(5, entry.todayTagDistribution.count), id: \.self) { i in
-                            Text(tagStatsLines(entry.todayTagDistribution)[i])
-                                .font(.caption)
-                                .foregroundColor(widgetAccent.opacity(0.9))
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
-                        }
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 16)
-        .padding(.top, 12)
+        .padding(.vertical, 12)
         .padding(.bottom, 16)
         .background(
             Image("WidgetBackground")
@@ -297,6 +261,45 @@ struct PuffWidgetSmallView: View {
                 .scaledToFill()
                 .clipped()
         )
+    }
+    
+    @available(iOS 17.0, *)
+    private var widgetTapTargetMedium: AnyView {
+        #if canImport(AppIntents)
+        return AnyView(Button(intent: RecordPuffIntent()) {
+            VStack(spacing: 8) {
+                Image("WidgetPuffIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 120)
+                HStack(spacing: 4) {
+                    Text("\(entry.todayCount)")
+                        .font(.title.weight(.bold))
+                        .foregroundColor(widgetAccent)
+                    Text("次")
+                        .font(.title3.weight(.medium))
+                        .foregroundColor(widgetAccent)
+                }
+            }
+        }.buttonStyle(.plain))
+        #else
+        return AnyView(Link(destination: URL(string: "puff://record")!) {
+            VStack(spacing: 8) {
+                Image("WidgetPuffIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 120)
+                HStack(spacing: 4) {
+                    Text("\(entry.todayCount)")
+                        .font(.title.weight(.bold))
+                        .foregroundColor(widgetAccent)
+                    Text("次")
+                        .font(.title3.weight(.medium))
+                        .foregroundColor(widgetAccent)
+                }
+            }
+        })
+        #endif
     }
     
     /// 非 iOS 17 中号：总次数 + 当日标签统计（最多5条）

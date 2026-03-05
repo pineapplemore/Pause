@@ -2,11 +2,17 @@
 //  RecordPuffIntent.swift
 //  PuffWidget
 //
-//  小组件点击「＋1」：通过 puff://record 打开主应用并自动记录一次。
-//  若使用 Xcode 15+（iOS 17 SDK），可改为 App Intents 实现不打开应用即记录。
+//  iOS 17+：App Intent 实现小组件点击 +1 不打开主应用。
+//  使用 Xcode 15+ 时，在 PuffWidget target 的 Link Binary With Libraries 中添加
+//  AppIntents.framework（Optional），即可在 iOS 17 设备上点击小组件仅 +1 不跳转 App。
 //
 
 import Foundation
+import WidgetKit
+
+#if canImport(AppIntents)
+import AppIntents
+#endif
 
 /// 通过 App Group 写入一条记录（主应用与小组件共享）
 func widgetAddOneRecord() {
@@ -21,4 +27,18 @@ func widgetAddOneRecord() {
     list.insert(Item(id: UUID(), timestamp: Date(), typeIds: []), at: 0)
     let data = (try? JSONEncoder().encode(list)) ?? Data()
     suite.set(data, forKey: key)
+    WidgetCenter.shared.reloadAllTimelines()
 }
+
+#if canImport(AppIntents)
+@available(iOS 17.0, *)
+struct RecordPuffIntent: AppIntent {
+    static var title: LocalizedStringResource = "Record Puff"
+    static var openAppWhenRun: Bool = false
+
+    func perform() async throws -> some IntentResult {
+        widgetAddOneRecord()
+        return .result()
+    }
+}
+#endif
