@@ -138,7 +138,7 @@ struct PuffWidgetSmallView: View {
         }
     }
     
-    /// iOS 17+ 小号：大屁股图 + 次数，点击 +1 不打开 App（无 3 标签）
+    /// iOS 17+ 小号：屁股图 + 次数，点击 +1 不打开 App；图标略小并留边距
     @available(iOS 17.0, *)
     private var interactiveSmallView: some View {
         VStack(spacing: 0) {
@@ -156,6 +156,8 @@ struct PuffWidgetSmallView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
         .padding(.bottom, 12)
         .background(
             Image("WidgetBackground")
@@ -172,14 +174,14 @@ struct PuffWidgetSmallView: View {
             Image("WidgetPuffIcon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 144, height: 144)
+                .frame(width: 108, height: 108)
         }.buttonStyle(.plain))
         #else
         return AnyView(Link(destination: URL(string: "puff://record")!) {
             Image("WidgetPuffIcon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 144, height: 144)
+                .frame(width: 108, height: 108)
         })
         #endif
     }
@@ -231,13 +233,23 @@ struct PuffWidgetSmallView: View {
         )
     }
     
-    /// iOS 17+ 中号：中间大屁股图 + 次数（点击 +1），右侧当日标签统计（无 3 胶囊标签）
+    /// iOS 17+ 中号：左侧 3 标签（点标签只给最后一条加标签），中间屁股图+次数（点图 +1），右侧当日统计
     @available(iOS 17.0, *)
     private var interactiveMediumView: some View {
-        HStack(spacing: 16) {
-            Spacer(minLength: 0)
+        HStack(alignment: .center, spacing: 12) {
+            // 左侧：3 个常用标签（点击 = 给最后一条记录加标签，不 +1）
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(0..<min(3, entry.favoriteTagIds.count), id: \.self) { i in
+                    widgetMediumTagButton(tagId: entry.favoriteTagIds[i], label: widgetTagDisplayName(tagId: entry.favoriteTagIds[i], at: i, labels: entry.favoriteTagLabels))
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(width: 72, alignment: .leading)
+            // 中间：屁股图 + 次数（点击 +1）
             widgetTapTargetMedium
+                .padding(.top, 20)
             Spacer(minLength: 0)
+            // 右侧：当日标签分布
             if !entry.todayTagDistribution.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(0..<min(5, entry.todayTagDistribution.count), id: \.self) { i in
@@ -253,7 +265,7 @@ struct PuffWidgetSmallView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.top, 16)
         .padding(.bottom, 16)
         .background(
             Image("WidgetBackground")
@@ -261,6 +273,37 @@ struct PuffWidgetSmallView: View {
                 .scaledToFill()
                 .clipped()
         )
+    }
+    
+    @available(iOS 17.0, *)
+    private func widgetMediumTagButton(tagId: String, label: String) -> some View {
+        Group {
+            #if canImport(AppIntents)
+            Button(intent: AddTagToLastRecordIntent(tagId: tagId)) {
+                Text(label)
+                    .font(.caption2.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(widgetAccent.opacity(0.25))
+                    .foregroundColor(widgetAccent)
+                    .clipShape(Capsule())
+            }.buttonStyle(.plain)
+            #else
+            Link(destination: URL(string: "puff://record?tag=\(tagId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? tagId)")!) {
+                Text(label)
+                    .font(.caption2.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(widgetAccent.opacity(0.25))
+                    .foregroundColor(widgetAccent)
+                    .clipShape(Capsule())
+            }
+            #endif
+        }
     }
     
     @available(iOS 17.0, *)
