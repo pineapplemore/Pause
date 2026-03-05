@@ -22,10 +22,10 @@
 		B001000D /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001100D /* SubscriptionManager.swift */; };
 		B001000E /* ReportPDFService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001100E /* ReportPDFService.swift */; };
 		B001000F /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001100F /* PaywallView.swift */; };
-		B0010013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011014 /* SettingsView.swift */; };
 		B0010010 /* PuffWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011010 /* PuffWidget.swift */; };
 		B0010011 /* RecordPuffIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011011 /* RecordPuffIntent.swift */; };
 		B0010012 /* PuffWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0012010 /* PuffWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B0010013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011014 /* SettingsView.swift */; };
 		B0010014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0011015 /* Assets.xcassets */; };
 		B0013012 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
 		B0013014 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
@@ -71,11 +71,11 @@
 		B001100D /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		B001100E /* ReportPDFService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPDFService.swift; sourceTree = "<group>"; };
 		B001100F /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		B0011014 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B0011010 /* PuffWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffWidget.swift; sourceTree = "<group>"; };
 		B0011011 /* RecordPuffIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPuffIntent.swift; sourceTree = "<group>"; };
 		B0011012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0011013 /* PuffWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PuffWidget.entitlements; sourceTree = "<group>"; };
+		B0011014 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B0011015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0012000 /* Puff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0012010 /* PuffWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PuffWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -477,7 +477,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -512,7 +512,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
