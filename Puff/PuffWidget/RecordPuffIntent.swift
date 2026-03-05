@@ -2,17 +2,14 @@
 //  RecordPuffIntent.swift
 //  PuffWidget
 //
-//  iOS 17+：App Intent 实现小组件点击 +1 不打开主应用。
-//  使用 Xcode 15+ 时，在 PuffWidget target 的 Link Binary With Libraries 中添加
-//  AppIntents.framework（Optional），即可在 iOS 17 设备上点击小组件仅 +1 不跳转 App。
+//  iOS 17+: Button(intent: RecordPuffIntent()) 点击 +1 不打开 App。
+//  若需 AddTagToLastRecordIntent，请确保 Widget 目标可链接 AppIntents（Optional）。
 //
-
-import Foundation
-import WidgetKit
 
 #if canImport(AppIntents)
 import AppIntents
 #endif
+import WidgetKit
 
 private let kWidgetRecordsKey = "puff_records"
 private let kWidgetSuiteName = "group.com.puff.app"
@@ -69,11 +66,10 @@ struct RecordPuffIntent: AppIntent {
 }
 
 @available(iOS 17.0, *)
-struct AddTagToLastRecordIntent: AppIntent {
+struct AddTagToLastRecordIntent: AppIntent, Hashable {
     static var title: LocalizedStringResource = "Add Tag to Last"
     static var openAppWhenRun: Bool = false
-    var tagId: String
-    init(tagId: String) { self.tagId = tagId }
+    @Parameter(title: "Tag ID") var tagId: String
 
     func perform() async throws -> some IntentResult {
         widgetAddTagToLastRecord(tagId: tagId)
