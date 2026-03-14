@@ -152,11 +152,10 @@ struct DayCell: View {
                 .font(.system(.body, design: .rounded))
                 .fontWeight(isToday ? .bold : .regular)
                 .foregroundColor(Color.primary)
-            if count > 0 {
-                Text("\(count)")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(Color.accentColor)
-            }
+            Text(count > 0 ? "\(count)" : " ")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundColor(count > 0 ? Color.accentColor : Color.clear)
+                .frame(minHeight: 14)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .padding(10)

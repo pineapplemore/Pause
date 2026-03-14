@@ -36,6 +36,16 @@ enum L10n {
     static func periodComparison(_ isChinese: Bool) -> String { isChinese ? "周期对比" : "Comparison" }
     static func hourlyDistribution(_ isChinese: Bool) -> String { isChinese ? "每日时段分布" : "Hourly distribution" }
     static func hourlyHint(_ isChinese: Bool) -> String { isChinese ? "可看出一天中哪个时段放屁最多，如午饭后等" : "Peak hours in a day (e.g. after lunch)" }
+    /// 每日时段分布下方标注：最近一次记录的日期
+    static func hourlyChartDateLabel(_ isChinese: Bool, _ date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = isChinese ? "M月d日" : "MMM d"
+        fmt.locale = Locale(identifier: isChinese ? "zh_Hans" : "en_US")
+        let str = fmt.string(from: date)
+        return isChinese ? "最近一次记录日：\(str)" : "Last record: \(str)"
+    }
+    static func last7RecordDaysTitle(_ isChinese: Bool) -> String { isChinese ? "最近 7 个有记录日对比" : "Last 7 days with records" }
+    static func last7RecordDaysHint(_ isChinese: Bool) -> String { isChinese ? "按 0–23 点时段，7 天用不同颜色" : "By hour (0–23), 7 days in different colors" }
     
     static func dayDetailTitleFormat(_ isChinese: Bool) -> String { isChinese ? "M月d日" : "MMM d" }
     static func dayDetailTotal(_ isChinese: Bool) -> String { isChinese ? "共" : "" }
@@ -120,6 +130,11 @@ enum L10n {
     static func productsLoadFailed(_ isChinese: Bool) -> String { isChinese ? "无法加载产品，请检查网络后重试" : "Unable to load products. Check connection and retry." }
     static func retry(_ isChinese: Bool) -> String { isChinese ? "重试" : "Retry" }
     static func requestTimeout(_ isChinese: Bool) -> String { isChinese ? "请求超时，请重试" : "Request timed out. Please retry." }
+    static func subscriptionName(_ isChinese: Bool) -> String { isChinese ? "PuffDiary 年度订阅" : "PuffDiary Annual" }
+    static func subscriptionLength(_ isChinese: Bool) -> String { isChinese ? "订阅周期：1 年" : "Subscription period: 1 year" }
+    static func termsOfUse(_ isChinese: Bool) -> String { isChinese ? "使用条款（EULA）" : "Terms of Use (EULA)" }
+    static func privacyPolicy(_ isChinese: Bool) -> String { isChinese ? "隐私政策" : "Privacy Policy" }
+    static func thenPerYear(_ isChinese: Bool) -> String { isChinese ? "随后按年续订" : "then renews annually" }
     static func exportPDF(_ isChinese: Bool) -> String { isChinese ? "导出 PDF" : "Export PDF" }
     static func pdfExportSuccess(_ isChinese: Bool) -> String { isChinese ? "报告已导出" : "Report exported" }
     static func pdfExportSubscriberOnly(_ isChinese: Bool) -> String { isChinese ? "导出 PDF 需订阅" : "Subscribe to export PDF" }

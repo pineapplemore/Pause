@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
@@ -31,6 +32,9 @@ struct ContentView: View {
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .tint(.accentColor)
         .environmentObject(appState)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            appState.refresh()
+        }
     }
 }
 

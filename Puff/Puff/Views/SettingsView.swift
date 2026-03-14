@@ -33,7 +33,7 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineSpacing(6)
-                        .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 20, trailing: 20))
+                        .listRowInsets(EdgeInsets(top: 36, leading: 20, bottom: 20, trailing: 20))
                 } header: {
                     Text(L10n.widgetFavoriteTagsTitle(appState.isChinese))
                 }

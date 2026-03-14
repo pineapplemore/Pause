@@ -19,6 +19,7 @@ struct RecordView: View {
     @State private var customMinutesInput = ""
     @State private var milestoneToShow: Int?
     @State private var recordButtonScale: CGFloat = 1.0
+    @State private var showPaywall = false
     
     private var visibleDefaultTypes: [PuffType] {
         PuffType.allCases.filter { !appState.deletedDefaultTagIds.contains($0.rawValue) }
@@ -65,14 +66,15 @@ struct RecordView: View {
                         .transition(.opacity)
                     }
                     
-                    Button {
-                        showRetroactiveSheet = true
-                    } label: {
-                        Text(L10n.retroactiveLog(appState.isChinese))
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(Color.accentColor)
-                    }
-                    .padding(.top, 4)
+                    // 补登暂时不用
+                    // Button {
+                    //     showRetroactiveSheet = true
+                    // } label: {
+                    //     Text(L10n.retroactiveLog(appState.isChinese))
+                    //         .font(.subheadline.weight(.medium))
+                    //         .foregroundColor(Color.accentColor)
+                    // }
+                    // .padding(.top, 4)
                     
                     // 「标签（可多选）」居左，右侧为「自定义」按钮
                     HStack(spacing: 8) {
@@ -169,6 +171,19 @@ struct RecordView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showPaywall = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "crown.fill")
+                                .font(.caption)
+                            Text(L10n.subscribe(appState.isChinese))
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundColor(Color.accentColor)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         appState.toggleLanguage()
@@ -179,12 +194,17 @@ struct RecordView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+                    .environmentObject(appState)
+            }
             .sheet(isPresented: $showCustomTagSheet) {
                 customTagSheet
             }
-            .sheet(isPresented: $showRetroactiveSheet) {
-                retroactiveSheet
-            }
+            // 补登暂时不用
+            // .sheet(isPresented: $showRetroactiveSheet) {
+            //     retroactiveSheet
+            // }
             .alert(
                 milestoneToShow.map { L10n.milestoneTitle(appState.isChinese, $0) } ?? "",
                 isPresented: Binding(

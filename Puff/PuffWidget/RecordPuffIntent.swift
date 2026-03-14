@@ -66,10 +66,18 @@ struct RecordPuffIntent: AppIntent {
 }
 
 @available(iOS 17.0, *)
-struct AddTagToLastRecordIntent: AppIntent, Hashable {
+struct AddTagToLastRecordIntent: AppIntent, Equatable, Hashable {
     static var title: LocalizedStringResource = "Add Tag to Last"
     static var openAppWhenRun: Bool = false
     @Parameter(title: "Tag ID") var tagId: String
+
+    static func == (lhs: AddTagToLastRecordIntent, rhs: AddTagToLastRecordIntent) -> Bool {
+        lhs.tagId == rhs.tagId
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(tagId)
+    }
 
     func perform() async throws -> some IntentResult {
         widgetAddTagToLastRecord(tagId: tagId)

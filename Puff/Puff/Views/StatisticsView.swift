@@ -46,7 +46,7 @@ struct StatisticsView: View {
                     // 不受周期影响的固定块：放上面
                     WeekOverWeekCard(appState: appState)
                     HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
-                    WeekdayDistributionCard(appState: appState, period: selectedPeriod, fixedDays: 30)
+                    Last7RecordDaysChartCard(appState: appState)
                     
                     // 统计周期选择（仅影响下面的本周期汇总、周期对比、标签分布）
                     VStack(alignment: .leading, spacing: 8) {
@@ -256,44 +256,26 @@ struct PeriodSummaryCard: View {
     }
 }
 
-// 自定义折线图（兼容 iOS 15）；fixedDays 非空时忽略 period，用最近 fixedDays 天
+// 每日时段分布：显示「最近一次记录所在那一天」的 0–23 点分布（单日）
 struct HourlyChartCard: View {
     @ObservedObject var appState: AppState
     let period: StatsPeriod
     var fixedDays: Int? = nil
     
-    private var datesInPeriod: [Date] {
-        let cal = Calendar.current
-        let now = Date()
-        if let days = fixedDays, days > 0 {
-            var d = cal.date(byAdding: .day, value: -(days - 1), to: cal.startOfDay(for: now)) ?? now
-            var list: [Date] = []
-            for _ in 0..<days {
-                list.append(d)
-                d = cal.date(byAdding: .day, value: 1, to: d) ?? d
-            }
-            return list
-        }
-        var start: Date
-        switch period {
-        case .week: start = cal.date(byAdding: .day, value: -6, to: cal.startOfDay(for: now)) ?? now
-        case .month: start = cal.date(byAdding: .month, value: -1, to: now) ?? now
-        case .threeMonths: start = cal.date(byAdding: .month, value: -3, to: now) ?? now
-        case .sixMonths: start = cal.date(byAdding: .month, value: -6, to: now) ?? now
-        case .nineMonths: start = cal.date(byAdding: .month, value: -9, to: now) ?? now
-        case .year: start = cal.date(byAdding: .year, value: -1, to: now) ?? now
-        }
-        var d = cal.startOfDay(for: start)
-        var list: [Date] = []
-        while d <= now {
-            list.append(d)
-            d = cal.date(byAdding: .day, value: 1, to: d) ?? d
-        }
-        return list
+    /// 最近一次记录所在日期（折线图只显示这一天的 24 小时分布）
+    private var dateOfMostRecentRecord: Date? {
+        guard let first = appState.records.first else { return nil }
+        return Calendar.current.startOfDay(for: first.timestamp)
+    }
+    
+    /// 用于折线图与高峰时段：只取「最近一次记录日」那一天
+    private var singleDayForChart: [Date] {
+        if let d = dateOfMostRecentRecord { return [d] }
+        return []
     }
     
     private var hourlyData: [(hour: Int, count: Int)] {
-        let counts = appState.hourlyCounts(for: datesInPeriod)
+        let counts = appState.hourlyCounts(for: singleDayForChart)
         return counts.enumerated().map { ($0.offset, $0.element) }
     }
     
@@ -301,21 +283,152 @@ struct HourlyChartCard: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.hourlyDistribution(appState.isChinese))
                 .font(.headline)
+            if let date = dateOfMostRecentRecord {
+                Text(L10n.hourlyChartDateLabel(appState.isChinese, date))
+                    .font(.caption)
+                    .foregroundColor(Color.accentColor)
+            }
             Text(L10n.hourlyHint(appState.isChinese))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            SimpleLineChartView(data: hourlyData.map { $0.count }, labels: hourlyData.map { "\($0.hour)" })
-                .frame(height: 200)
-            if let peak = appState.peakHour(from: datesInPeriod) {
-                Text(L10n.peakHourText(appState.isChinese, peak))
+            if singleDayForChart.isEmpty {
+                Text(appState.isChinese ? "暂无记录" : "No records")
                     .font(.caption)
-                    .foregroundColor(Color.accentColor)
+                    .foregroundStyle(.secondary)
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity)
+            } else {
+                SimpleLineChartView(data: hourlyData.map { $0.count }, labels: hourlyData.map { "\($0.hour)" })
+                    .frame(height: 200)
+                if let peak = appState.peakHour(from: singleDayForChart) {
+                    Text(L10n.peakHourText(appState.isChinese, peak))
+                        .font(.caption)
+                        .foregroundColor(Color.accentColor)
+                }
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// 莫兰迪 7 色（用于最近 7 个有记录日折线）
+private let kMorandiChartColors: [Color] = [
+    Color(red: 0.55, green: 0.58, blue: 0.48),
+    Color(red: 0.58, green: 0.52, blue: 0.62),
+    Color(red: 0.45, green: 0.55, blue: 0.62),
+    Color(red: 0.42, green: 0.58, blue: 0.58),
+    Color(red: 0.65, green: 0.52, blue: 0.48),
+    Color(red: 0.48, green: 0.58, blue: 0.60),
+    Color(red: 0.62, green: 0.48, blue: 0.40)
+]
+
+/// 最近 7 个「有记录」的日期（非连续），每天一条折线，7 种莫兰迪色
+struct Last7RecordDaysChartCard: View {
+    @ObservedObject var appState: AppState
+    
+    private static func dateLabel(for date: Date, isChinese: Bool) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = isChinese ? "M/d" : "MMM d"
+        fmt.locale = Locale(identifier: isChinese ? "zh_Hans" : "en_US")
+        return fmt.string(from: date)
+    }
+    
+    private func last7LegendView(days: [(date: Date, counts: [Int])]) -> some View {
+        HStack(spacing: 8) {
+            ForEach(Array(days.enumerated()), id: \.offset) { i, item in
+                HStack(spacing: 4) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(kMorandiChartColors[i % kMorandiChartColors.count])
+                        .frame(width: 10, height: 10)
+                    Text(Last7RecordDaysChartCard.dateLabel(for: item.date, isChinese: appState.isChinese))
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    
+    /// 从今天起往前找，有记录的日期，最多 7 天（当天 0 次不算有记录）
+    private var last7RecordDays: [(date: Date, counts: [Int])] {
+        let cal = Calendar.current
+        var d = cal.startOfDay(for: Date())
+        var result: [(Date, [Int])] = []
+        for _ in 0..<365 {
+            let cnt = appState.count(on: d)
+            if cnt > 0 {
+                let counts = appState.hourlyCounts(for: [d])
+                result.append((d, counts))
+                if result.count >= 7 { break }
+            }
+            guard let next = cal.date(byAdding: .day, value: -1, to: d) else { break }
+            d = next
+        }
+        return result
+    }
+    
+    private var globalMax: Int {
+        last7RecordDays.flatMap { $0.counts }.max() ?? 1
+    }
+    
+    var body: some View {
+        let days = last7RecordDays
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L10n.last7RecordDaysTitle(appState.isChinese))
+                .font(.headline)
+            Text(L10n.last7RecordDaysHint(appState.isChinese))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if days.isEmpty {
+                Text(appState.isChinese ? "暂无有记录日" : "No days with records")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity)
+            } else {
+                MultiLineChartView(days: days, maxValue: max(globalMax, 1), colors: kMorandiChartColors)
+                    .frame(height: 200)
+                last7LegendView(days: days)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// 多条折线（每条为 24 小时数据）
+struct MultiLineChartView: View {
+    let days: [(date: Date, counts: [Int])]
+    let maxValue: Int
+    let colors: [Color]
+    
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let stepX = (w - 24) / 24
+            let maxVal = CGFloat(maxValue)
+            ZStack(alignment: .bottom) {
+                ForEach(Array(days.enumerated()), id: \.offset) { idx, day in
+                    let pts = day.counts.enumerated().map { i, v -> CGPoint in
+                        let x = 12 + CGFloat(i) * stepX + stepX / 2
+                        let y = h - 20 - (maxVal > 0 ? (CGFloat(v) / maxVal) * (h - 32) : 0)
+                        return CGPoint(x: x, y: y)
+                    }
+                    if pts.count >= 2 {
+                        Path { p in
+                            p.move(to: pts[0])
+                            for pt in pts.dropFirst() { p.addLine(to: pt) }
+                        }
+                        .stroke(colors[idx % colors.count], lineWidth: 2)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -564,12 +677,13 @@ struct SimpleBarChartView: View {
     let data: [(label: String, value: Int)]
     
     var body: some View {
-        let maxVal = data.map(\.value).max() ?? 1
+        let maxVal = max(data.map(\.value).max() ?? 1, 1)
         GeometryReader { geo in
             let h = geo.size.height
             HStack(alignment: .bottom, spacing: 4) {
                 ForEach(Array(data.enumerated()), id: \.offset) { _, item in
                     VStack(spacing: 4) {
+                        Spacer(minLength: 0)
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.accentColor)
                             .frame(height: max(4, CGFloat(item.value) / CGFloat(maxVal) * (h - 28)))
