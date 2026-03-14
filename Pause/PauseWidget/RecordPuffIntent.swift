@@ -2,8 +2,8 @@
 //  RecordPuffIntent.swift
 //  PauseWidget
 //
-//  iOS 17+: Button(intent: RecordPuffIntent()) 点击 +1 不打开 App。
-//  若需 AddTagToLastRecordIntent，请确保 Widget 目标可链接 AppIntents（Optional）。
+//  iOS 17+: Button(intent: RecordPuffIntent(behaviorId: id)) 点击 +1 不打开 App。
+//  当编译环境无 AppIntents 模块时仅提供 widgetAddOneRecord 等，不定义 RecordPuffIntent。
 //
 
 import WidgetKit
@@ -67,4 +67,29 @@ func widgetAddTagToLastRecord(tagId: String) {
     WidgetCenter.shared.reloadAllTimelines()
 }
 
-// 小组件不链接 AppIntents 框架，点击按键通过 Link 打开 App 并记录（pause://record?tag=b1 等）
+// MARK: - App Intent（iOS 17+ 小组件按键点击 +1 不打开 App）。编译条件 NO_APP_INTENTS 时不再链接 AppIntents，仅展示次数与首字。
+#if !NO_APP_INTENTS && canImport(AppIntents)
+import AppIntents
+
+@available(iOS 17.0, *)
+struct RecordPuffIntent: AppIntent {
+    static var title: LocalizedStringResource = "Record"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Behavior ID")
+    var behaviorId: String
+
+    init(behaviorId: String = "b1") {
+        self.behaviorId = behaviorId
+    }
+
+    init() {
+        self.behaviorId = "b1"
+    }
+
+    func perform() async throws -> some IntentResult {
+        widgetAddOneRecord(behaviorId: behaviorId)
+        return .result()
+    }
+}
+#endif

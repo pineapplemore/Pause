@@ -30,6 +30,7 @@
 		B0010014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0011015 /* Assets.xcassets */; };
 		B0013012 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
 		B0013014 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
+		B0013016 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013017 /* AppIntents.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +83,7 @@
 		B0012000 /* Pause.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pause.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0012010 /* PauseWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PauseWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0013013 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		B0013017 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +109,7 @@
 		189D67512F586816002138F8 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
+				B0013017 /* AppIntents.framework */,
 				B0013013 /* WidgetKit.framework */,
 			);
 			name = "Recovered References";
@@ -341,6 +344,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -402,6 +406,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -529,7 +534,8 @@
 				DEVELOPMENT_TEAM = ZU5BKQ72X5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PauseWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "NO_APP_INTENTS $(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -555,7 +561,8 @@
 				DEVELOPMENT_TEAM = ZU5BKQ72X5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PauseWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "NO_APP_INTENTS $(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

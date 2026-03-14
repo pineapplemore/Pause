@@ -142,7 +142,11 @@ final class StorageService {
         }
         defaults.set(list, forKey: kWidgetBehaviorInitials)
         defaults.synchronize()
-        WidgetCenter.shared.reloadAllTimelines()
+        // 延迟刷新，确保 App Group 写入对小组件扩展进程可见后再请求新 timeline（新机型如 iPhone 17 需稍长延迟）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "PauseWidget")
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     func loadRecords() -> [PuffRecord] {

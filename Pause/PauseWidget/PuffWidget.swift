@@ -139,6 +139,8 @@ struct PuffWidgetSmallView: View {
         switch family {
         case .systemSmall:
             smallContent
+        case .systemMedium, .systemLarge, .systemExtraLarge:
+            smallContent
         @unknown default:
             smallContent
         }
@@ -211,13 +213,18 @@ struct PuffWidgetSmallView: View {
         let count = entry.todayCountPerId[id] ?? 0
 
         let initial: String = entry.showInitialOnWidget && index < entry.behaviorInitials.count && !entry.behaviorInitials[index].isEmpty ? entry.behaviorInitials[index] : ""
+        #if !NO_APP_INTENTS && canImport(AppIntents)
         if #available(iOS 17.0, *) {
-            Link(destination: URL(string: "pause://record?tag=\(id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id)")!) {
+            Button(intent: RecordPuffIntent(behaviorId: id)) {
                 widgetButtonContent(label: label, count: count, side: side, interactive: true, colorIndex: index, initial: initial)
             }
+            .buttonStyle(.plain)
         } else {
             widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial)
         }
+        #else
+        widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial)
+        #endif
     }
 
     private func widgetButtonContent(label: String, count: Int, side: CGFloat, interactive: Bool, colorIndex: Int, initial: String = "") -> some View {

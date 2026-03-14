@@ -27,7 +27,7 @@ struct RecordView: View {
     @State private var showPaywall = false
     @State private var showInitialOnWidget = false
     @State private var widgetInitials: [String] = ["", "", "", ""]
-
+    
     private var behaviorNames: [String] {
         appState.behaviorNames()
     }
@@ -48,17 +48,17 @@ struct RecordView: View {
                     // 记录成功反馈：固定高度，避免出现时把下方模块顶下去再弹回
                     ZStack(alignment: .center) {
                         if showRecorded, let time = lastRecordTime {
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color("SecondaryColor"))
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("SecondaryColor"))
                                 if let n = lastBehaviorName {
                                     Text("\(n) · \(time, style: .time)")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                                 } else {
                                     Text("\(time, style: .time)")
                                         .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                                                .foregroundStyle(.secondary)
                                 }
                             }
                             .transition(.opacity)
@@ -213,7 +213,7 @@ struct RecordView: View {
         let names = appState.behaviorNames()
         return VStack(alignment: .leading, spacing: 10) {
             Text(L10n.behaviorsSectionTitle(appState.isChinese))
-                .font(.headline)
+                    .font(.headline)
                 .foregroundStyle(.primary)
             List {
                 ForEach(Array(names.enumerated()), id: \.offset) { index, _ in
@@ -228,7 +228,7 @@ struct RecordView: View {
                         if index > 0 {
                             Button(role: .destructive) {
                                 appState.removeBehaviorSlot(at: index)
-                            } label: {
+                } label: {
                                 Text(L10n.delete(appState.isChinese))
                             }
                         }
@@ -280,7 +280,7 @@ struct RecordView: View {
                 Text(L10n.saveToWidget(appState.isChinese))
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(Color.accentColor)
-            }
+                }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -347,7 +347,7 @@ private struct BehaviorButton: View {
     var size: CGFloat = 88
     var colorIndex: Int = 0
     let action: () -> Void
-
+    
     private var mainColor: Color { Behavior.morandiColor(at: colorIndex) }
     private var darkColor: Color { Behavior.morandiDarkColor(at: colorIndex) }
 
@@ -360,7 +360,7 @@ private struct BehaviorButton: View {
         guard let last = title.last, last.isNumber else { return nil }
         return String(last)
     }
-
+    
     var body: some View {
         Button(action: action) {
             VStack(spacing: size * 0.04) {
@@ -378,7 +378,7 @@ private struct BehaviorButton: View {
             }
             .frame(width: size, height: size)
             .offset(y: -size * 0.04)
-                .background(
+            .background(
                     Image("BehaviorButtonIcon\(colorIndex + 1)")
                         .resizable()
                         .scaledToFill()
