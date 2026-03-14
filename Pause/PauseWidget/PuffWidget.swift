@@ -136,10 +136,11 @@ struct PuffWidgetSmallView: View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        if family == .systemSmall {
+        switch family {
+        case .systemSmall:
             smallContent
-        } else {
-            EmptyView()
+        @unknown default:
+            smallContent
         }
     }
 
