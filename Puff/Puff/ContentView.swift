@@ -23,10 +23,11 @@ struct ContentView: View {
                 .tabItem {
                     Label(L10n.tabStatistics(appState.isChinese), systemImage: "chart.line.uptrend.xyaxis")
                 }
-            SettingsView()
-                .tabItem {
-                    Label(L10n.tabSettings(appState.isChinese), systemImage: "gearshape")
-                }
+            // MVP 暂不展示设定页
+            // SettingsView()
+            //     .tabItem {
+            //         Label(L10n.tabSettings(appState.isChinese), systemImage: "gearshape")
+            //     }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemGroupedBackground).ignoresSafeArea())

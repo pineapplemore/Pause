@@ -368,13 +368,9 @@ struct PuffWidgetBundle: WidgetBundle {
 struct PuffWidget: Widget {
     let kind: String = "PuffWidget"
     
-    /// 非 iOS 17 仅提供小号；iOS 17+ 提供小号与中号
+    /// MVP 仅提供小号；中号小组件暂不提供
     private static var supportedFamilies: [WidgetFamily] {
-        if #available(iOS 17.0, *) {
-            return [.systemSmall, .systemMedium]
-        } else {
-            return [.systemSmall]
-        }
+        [.systemSmall]
     }
     
     var body: some WidgetConfiguration {

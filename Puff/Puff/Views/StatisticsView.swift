@@ -454,12 +454,6 @@ struct TagDistributionCard: View {
         appState.tagDistribution(from: periodRange.start, to: periodRange.end)
     }
     
-    private func tagDisplayName(_ tagId: String) -> String {
-        if let t = PuffType(rawValue: tagId) { return t.displayName(isChinese: appState.isChinese) }
-        if tagId.hasPrefix("custom:") { return String(tagId.dropFirst(7)) }
-        return tagId
-    }
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -480,7 +474,7 @@ struct TagDistributionCard: View {
                 } else {
                     ForEach(Array(distribution.prefix(8)), id: \.0) { tagId, count in
                         HStack {
-                            Text(tagDisplayName(tagId))
+                            Text(appState.displayNameForTagId(tagId))
                                 .font(.subheadline)
                             Spacer()
                             Text("\(count)")

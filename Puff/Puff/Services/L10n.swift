@@ -66,7 +66,7 @@ enum L10n {
     static func tabRecordFun(_ isChinese: Bool) -> String { isChinese ? "今日战绩" : "Today" }
     static func tagDistribution(_ isChinese: Bool) -> String { isChinese ? "标签分布" : "Tag distribution" }
     /// 多选说明：各标签次数之和可能大于记录数，故不用饼图
-    static func tagDistributionHint(_ isChinese: Bool) -> String { isChinese ? "标签可多选，下方为各标签被选次数" : "Tags are multi-select; counts are per tag" }
+    static func tagDistributionHint(_ isChinese: Bool) -> String { isChinese ? "下方为各类型屁的被选次数（可多选）" : "Count by puff type below (multi-select)" }
     static func showTagDistribution(_ isChinese: Bool) -> String { isChinese ? "显示标签分布" : "Show tag distribution" }
     static func peakHour(_ isChinese: Bool) -> String { isChinese ? "一天中的高光时刻" : "Peak puff hours" }
     static func consecutiveDays(_ isChinese: Bool) -> String { isChinese ? "连续记录" : "Streak" }
