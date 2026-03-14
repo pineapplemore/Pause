@@ -267,7 +267,7 @@ struct PuffWidgetSmallView: View {
     private func widgetMediumTagButton(tagId: String, label: String) -> some View {
         Group {
             #if canImport(AppIntents)
-            Button(intent: AddTagToLastRecordIntent(tagId: IntentParameter(title: "Tag ID", default: tagId))) {
+            Button(intent: AddTagToLastRecordIntent(tagId: tagId)) {
                 Text(label)
                     .font(.caption2.weight(.medium))
                     .lineLimit(1)
