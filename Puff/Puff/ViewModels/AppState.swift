@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 private let kHasLaunchedBefore = "Puff.hasLaunchedBefore"
 private let kLanguageIsChinese = "Puff.languageIsChinese"
@@ -31,6 +32,7 @@ final class AppState: ObservableObject {
         didSet {
             UserDefaults.standard.set(isChinese, forKey: kLanguageIsChinese)
             storage.setAppLanguageIsChinese(isChinese)
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     private let storage = StorageService.shared
@@ -48,6 +50,7 @@ final class AppState: ObservableObject {
             UserDefaults.standard.set(self.isChinese, forKey: kLanguageIsChinese)
         }
         storage.setAppLanguageIsChinese(self.isChinese)
+        WidgetCenter.shared.reloadAllTimelines()
         refresh()
     }
     
