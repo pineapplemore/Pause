@@ -72,6 +72,15 @@ struct AddTagToLastRecordIntent: AppIntent {
     /// 使用普通属性而非 @Parameter，便于合成 Equatable/Hashable，Widget 内直接传 String
     var tagId: String
 
+    /// AppIntent 协议要求无参初始化器
+    init() {
+        self.tagId = ""
+    }
+
+    init(tagId: String) {
+        self.tagId = tagId
+    }
+
     func perform() async throws -> some IntentResult {
         widgetAddTagToLastRecord(tagId: tagId)
         return .result()
