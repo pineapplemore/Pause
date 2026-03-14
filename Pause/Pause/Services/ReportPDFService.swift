@@ -20,7 +20,7 @@ enum ReportPDFService {
         let total = appState.records(from: range.start, to: range.end).count
         let behaviorDist = appState.behaviorDistribution(from: range.start, to: range.end)
         let periodName = period.displayName(isChinese: isChinese)
-        let title = isChinese ? "行为报告" : "Pause Report"
+        let title = isChinese ? "行为报告" : "AntiRepeat Report"
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
         dateFormatter.locale = Locale(identifier: isChinese ? "zh_CN" : "en_US")

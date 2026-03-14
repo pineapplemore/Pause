@@ -8,6 +8,17 @@
 import SwiftUI
 import WidgetKit
 
+/// 角标首字仅允许一个英文字母或一个中文字符；多字符时取最后一个并校验
+private func normalizedWidgetInitial(_ input: String) -> String {
+    let one = String(input.suffix(1))
+    guard let char = one.first else { return "" }
+    guard let scalar = char.unicodeScalars.first else { return "" }
+    let u = scalar.value
+    let isLatin = (u >= 0x41 && u <= 0x5A) || (u >= 0x61 && u <= 0x7A)
+    let isCJK = (u >= 0x4E00 && u <= 0x9FFF) || (u >= 0x3400 && u <= 0x4DBF)
+    return (isLatin || isCJK) ? one : ""
+}
+
 struct RecordView: View {
     @EnvironmentObject var appState: AppState
     @State private var showRecorded = false
@@ -65,6 +76,11 @@ struct RecordView: View {
                     widgetInitials = StorageService.shared.widgetBehaviorInitials()
                 }
             }
+            .simultaneousGesture(
+                TapGesture().onEnded { _ in
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
@@ -187,106 +203,127 @@ struct RecordView: View {
 
     private var managementSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 行为：每行可编辑；第一个只能改名，其余可左滑删除；左下角「添加行为」
-            VStack(alignment: .leading, spacing: 10) {
-                Text(L10n.behaviorsSectionTitle(appState.isChinese))
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                let names = appState.behaviorNames()
-                List {
-                    ForEach(Array(names.enumerated()), id: \.offset) { index, _ in
-                        TextField("", text: Binding(
-                            get: { index < appState.behaviorNames().count ? appState.behaviorNames()[index] : "" },
-                            set: { appState.setBehaviorName(at: index, name: $0) }
-                        ))
-                        .textFieldStyle(.roundedBorder)
-                        .listRowBackground(Color(.secondarySystemGroupedBackground))
-                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                        .swipeActions(edge: .trailing) {
-                            if index > 0 {
-                                Button(role: .destructive) {
-                                    appState.removeBehaviorSlot(at: index)
-                                } label: {
-                                    Text(L10n.delete(appState.isChinese))
-                                }
-                            }
-                        }
-                    }
-                }
-                .listStyle(.plain)
-                .frame(minHeight: CGFloat(names.count) * 52)
-                HStack(spacing: 12) {
-                    if names.count < Behavior.maxCount {
-                        Button(L10n.addBehavior(appState.isChinese)) { appState.addBehaviorSlot() }
-                            .foregroundColor(Color.accentColor)
-                            .font(.subheadline.weight(.medium))
-                    }
-                    Spacer(minLength: 0)
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-
-            // 小组件：仅在小组件按键右下角显示首字，需自定义；不自定义则不显示
-            VStack(alignment: .leading, spacing: 12) {
-                Text(L10n.widgetSectionTitle(appState.isChinese))
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                HStack {
-                    Text(L10n.showInitialOnWidget(appState.isChinese))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer(minLength: 0)
-                    Toggle("", isOn: Binding(
-                        get: { showInitialOnWidget },
-                        set: {
-                            showInitialOnWidget = $0
-                            StorageService.shared.setShowInitialOnWidget($0)
-                        }
-                    ))
-                    .labelsHidden()
-                }
-                if showInitialOnWidget {
-                    let names = appState.behaviorNames()
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(Array(names.enumerated()), id: \.offset) { index, _ in
-                            HStack(spacing: 8) {
-                                Text(index < names.count ? names[index] : "")
-                                    .font(.subheadline)
-                                    .lineLimit(1)
-                                    .frame(width: 80, alignment: .leading)
-                                TextField(L10n.widgetInitialPlaceholder(appState.isChinese), text: Binding(
-                                    get: { index < widgetInitials.count ? widgetInitials[index] : "" },
-                                    set: { new in
-                                        let one = String(new.prefix(1))
-                                        if index < widgetInitials.count {
-                                            widgetInitials[index] = one
-                                            StorageService.shared.setWidgetBehaviorInitial(at: index, initial: one)
-                                        }
-                                    }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                }
-                Button {
-                    saveWidgetSettings()
-                } label: {
-                    Text(L10n.saveToWidget(appState.isChinese))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(Color.accentColor)
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            behaviorListBlock
+            widgetInitialBlock
         }
         .padding(.horizontal, 20)
+    }
+
+    private var behaviorListBlock: some View {
+        let names = appState.behaviorNames()
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.behaviorsSectionTitle(appState.isChinese))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            List {
+                ForEach(Array(names.enumerated()), id: \.offset) { index, _ in
+                    TextField("", text: Binding(
+                        get: { index < appState.behaviorNames().count ? appState.behaviorNames()[index] : "" },
+                        set: { appState.setBehaviorName(at: index, name: $0) }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .swipeActions(edge: .trailing) {
+                        if index > 0 {
+                            Button(role: .destructive) {
+                                appState.removeBehaviorSlot(at: index)
+                            } label: {
+                                Text(L10n.delete(appState.isChinese))
+                            }
+                        }
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .frame(minHeight: CGFloat(names.count) * 52)
+            HStack(spacing: 12) {
+                if names.count < Behavior.maxCount {
+                    Button(L10n.addBehavior(appState.isChinese)) { appState.addBehaviorSlot() }
+                        .foregroundColor(Color.accentColor)
+                        .font(.subheadline.weight(.medium))
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var widgetInitialBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L10n.widgetSectionTitle(appState.isChinese))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            HStack {
+                Text(L10n.showInitialOnWidget(appState.isChinese))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                Toggle("", isOn: Binding(
+                    get: { showInitialOnWidget },
+                    set: {
+                        showInitialOnWidget = $0
+                        StorageService.shared.setShowInitialOnWidget($0)
+                    }
+                ))
+                .labelsHidden()
+            }
+            if showInitialOnWidget {
+                widgetInitialRows
+            }
+            Button {
+                saveWidgetSettings()
+            } label: {
+                Text(L10n.saveToWidget(appState.isChinese))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(Color.accentColor)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    @ViewBuilder
+    private var widgetInitialRows: some View {
+        let names = appState.behaviorNames()
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(Array(names.enumerated()), id: \.offset) { index, _ in
+                widgetInitialRow(index: index, name: index < names.count ? names[index] : "")
+            }
+        }
+    }
+
+    private func widgetInitialRow(index: Int, name: String) -> some View {
+        HStack(spacing: 8) {
+            Text(name)
+                .font(.subheadline)
+                .lineLimit(1)
+                .frame(width: 80, alignment: .leading)
+            TextField(L10n.widgetInitialPlaceholder(appState.isChinese), text: Binding(
+                get: { index < widgetInitials.count ? widgetInitials[index] : "" },
+                set: { new in
+                    let one = normalizedWidgetInitial(new)
+                    if index < widgetInitials.count {
+                        widgetInitials[index] = one
+                        StorageService.shared.setWidgetBehaviorInitial(at: index, initial: one)
+                    }
+                }
+            ))
+            .textFieldStyle(.roundedBorder)
+            .frame(maxWidth: .infinity)
+            .onChange(of: widgetInitials[index]) { newValue in
+                if newValue.count > 1, index < widgetInitials.count {
+                    let one = normalizedWidgetInitial(newValue)
+                    widgetInitials[index] = one
+                    StorageService.shared.setWidgetBehaviorInitial(at: index, initial: one)
+                }
+            }
+        }
     }
 
     private func saveWidgetSettings() {

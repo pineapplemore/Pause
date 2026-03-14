@@ -65,7 +65,7 @@ enum L10n {
     static func customMinutes(_ isChinese: Bool) -> String { isChinese ? "自定义" : "Custom" }
     static func customMinutesPlaceholder(_ isChinese: Bool) -> String { isChinese ? "输入分钟数" : "Minutes" }
     
-    static func reportTitle(_ isChinese: Bool) -> String { isChinese ? "行为报告" : "Pause Report" }
+    static func reportTitle(_ isChinese: Bool) -> String { isChinese ? "行为报告" : "AntiRepeat Report" }
     static func tabRecordFun(_ isChinese: Bool) -> String { isChinese ? "今日" : "Today" }
     static func tapToRecord(_ isChinese: Bool) -> String { isChinese ? "点击下方按键记录" : "Tap a button to record" }
     static func tagDistribution(_ isChinese: Bool) -> String { isChinese ? "行为分布" : "Behavior distribution" }
@@ -130,7 +130,7 @@ enum L10n {
     static func productsLoadFailed(_ isChinese: Bool) -> String { isChinese ? "无法加载产品，请检查网络后重试" : "Unable to load products. Check connection and retry." }
     static func retry(_ isChinese: Bool) -> String { isChinese ? "重试" : "Retry" }
     static func requestTimeout(_ isChinese: Bool) -> String { isChinese ? "请求超时，请重试" : "Request timed out. Please retry." }
-    static func subscriptionName(_ isChinese: Bool) -> String { isChinese ? "Pause 年度订阅" : "Pause Annual" }
+    static func subscriptionName(_ isChinese: Bool) -> String { isChinese ? "AntiRepeat 年度订阅" : "AntiRepeat Annual" }
     static func subscriptionLength(_ isChinese: Bool) -> String { isChinese ? "订阅周期：1 年" : "Subscription period: 1 year" }
     static func termsOfUse(_ isChinese: Bool) -> String { isChinese ? "使用条款（EULA）" : "Terms of Use (EULA)" }
     static func privacyPolicy(_ isChinese: Bool) -> String { isChinese ? "隐私政策" : "Privacy Policy" }

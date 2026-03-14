@@ -71,6 +71,7 @@ final class StorageService {
         let capped = Array(ids.prefix(4))
         defaults.set(capped, forKey: kWidgetFavoriteTagIds)
         defaults.synchronize()
+        WidgetCenter.shared.reloadAllTimelines()
     }
     
     /// 小组件行为显示名（与 ids 顺序一致）
@@ -82,6 +83,7 @@ final class StorageService {
         let capped = Array(labels.prefix(4))
         defaults.set(capped, forKey: kWidgetFavoriteTagLabels)
         defaults.synchronize()
+        WidgetCenter.shared.reloadAllTimelines()
     }
     
     /// 供小组件读取：当前是否为中文（与 App 内用户选择一致）

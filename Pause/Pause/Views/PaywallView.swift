@@ -15,7 +15,12 @@ struct PaywallView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
-    
+
+    /// 年订阅下方显示的 3 天试用期提示
+    private var trialHintText: String {
+        L10n.trialNotice(appState.isChinese)
+    }
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -25,17 +30,18 @@ struct PaywallView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     
-                    // 2. 账单金额：最显著（3.1.2(c) 要求）；上方显示 3 天试用说明
+                    // 2. 账单金额：最显著（3.1.2(c) 要求）；年订阅下方显示 3 天试用提示（次要样式）
                     if let product = subscriptionManager.yearlyProduct {
-                        Text(L10n.trialNotice(appState.isChinese))
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(Color.accentColor)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(product.displayPrice)
                                 .font(.system(size: 34, weight: .bold))
                                 .foregroundColor(Color.accentColor)
                             Text(appState.isChinese ? "/年" : "/year")
                                 .font(.title3.weight(.medium))
+                                .foregroundStyle(.secondary)
+                            // 年订阅下方：3 天试用期提示
+                            Text(trialHintText)
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                         .padding(.vertical, 4)

@@ -170,7 +170,7 @@ struct StatisticsView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateStr = dateFormatter.string(from: Date())
-        let fileName = "PauseReport_\(dateStr).pdf"
+        let fileName = "AntiRepeatReport_\(dateStr).pdf"
         let temp = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         do {
             try data.write(to: temp)

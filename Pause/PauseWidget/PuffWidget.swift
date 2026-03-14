@@ -220,7 +220,6 @@ struct PuffWidgetSmallView: View {
     }
 
     private func widgetButtonContent(label: String, count: Int, side: CGFloat, interactive: Bool, colorIndex: Int, initial: String = "") -> some View {
-        let pad: CGFloat = min(6, side * 0.1)
         let imageName = "BehaviorButtonIcon\(colorIndex + 1)"
         return Image(imageName)
             .resizable()
@@ -242,7 +241,7 @@ struct PuffWidgetSmallView: View {
                         .font(.system(size: max(5, side * 0.15), weight: .semibold))
                         .foregroundColor(.white.opacity(0.95))
                         .padding(min(5, side * 0.08))
-                        .offset(x: -12, y: -12)
+                        .offset(x: -18, y: -18)
                 }
             }
             .frame(width: side, height: side)
@@ -285,7 +284,7 @@ struct PuffWidget: Widget {
         return StaticConfiguration(kind: kind, provider: PuffWidgetProvider()) { entry in
             PuffWidgetSmallView(entry: entry)
         }
-        .configurationDisplayName(isChinese ? "Pause" : "Pause")
+        .configurationDisplayName("AntiRepeat")
         .description(isChinese ? "今日行为记录，点击按键快速记录" : "Today's behaviors, tap to record")
         .supportedFamilies([.systemSmall])
     }

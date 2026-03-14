@@ -17,8 +17,8 @@ private let kPurchaseTimeoutSeconds: UInt64 = 25
 /// 超时错误标记，Paywall 可据此显示本地化文案
 let kSubscriptionTimeoutErrorKey = "SUBSCRIPTION_TIMEOUT"
 
-/// 设为 true 时暂时跳过订阅校验，便于查看日历/统计等界面；查看完后改回 false 恢复订阅逻辑
-private let kTemporarilyBypassSubscription = true
+/// 设为 true 时暂时跳过订阅校验，便于截图；正式发布需为 false 以启用 3 天试用与年订阅
+private let kTemporarilyBypassSubscription = false
 
 final class SubscriptionManager: ObservableObject {
     static let shared = SubscriptionManager()
