@@ -67,8 +67,8 @@ private func widgetBehaviorIds() -> [String] {
 private func widgetAppLanguageIsChinese() -> Bool {
     let suite = UserDefaults(suiteName: kAppGroupSuite) ?? UserDefaults.standard
     if let stored = suite.object(forKey: kPauseAppLanguageIsChinese) as? Bool { return stored }
-    let lang = Locale.current.language.languageCode?.identifier ?? ""
-    return lang.hasPrefix("zh")
+    let preferred = Locale.preferredLanguages.first ?? Locale.current.identifier
+    return preferred.hasPrefix("zh")
 }
 
 private func widgetShowInitialOnWidget() -> Bool {
