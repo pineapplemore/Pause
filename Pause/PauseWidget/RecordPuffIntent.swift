@@ -9,7 +9,7 @@
 import WidgetKit
 
 private let kWidgetRecordsKey = "pause_records"
-private let kWidgetSuiteName = "group.com.pause.app"
+private let kWidgetSuiteName = "group.com.yangzhao.pause.app"
 private let kBehaviorNamesKey = "Pause.behaviorNames"
 private let kAppLanguageIsChinese = "Pause.appLanguageIsChinese"
 

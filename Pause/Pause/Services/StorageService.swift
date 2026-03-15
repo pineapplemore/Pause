@@ -9,7 +9,7 @@ import Foundation
 import WidgetKit
 
 /// App Group ID，主应用与 Widget 扩展需在 Capabilities 中勾选同一 Group
-let kPauseAppGroupSuiteName = "group.com.pause.app"
+let kPauseAppGroupSuiteName = "group.com.yangzhao.pause.app"
 
 /// 4 个行为按键的显示名（顺序与 Behavior.ids 一致）
 private let kBehaviorNames = "Pause.behaviorNames"

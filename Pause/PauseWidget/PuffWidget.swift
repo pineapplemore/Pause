@@ -8,7 +8,7 @@
 import WidgetKit
 import SwiftUI
 
-private let kAppGroupSuite = "group.com.pause.app"
+private let kAppGroupSuite = "group.com.yangzhao.pause.app"
 private let kRecordsKey = "pause_records"
 private let kBehaviorNamesKey = "Pause.behaviorNames"
 private let kPauseAppLanguageIsChinese = "Pause.appLanguageIsChinese"
@@ -235,23 +235,25 @@ struct PuffWidgetSmallView: View {
             .frame(width: side, height: side)
             .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .center) {
-                // 小组件只显示数字。改位置可调 .offset(y:)（负值向上）；改字号调 size: side * 0.32
+            .overlay(
                 Text("\(count)")
                     .font(.system(size: side * 0.32, weight: .bold))
                     .foregroundColor(.white)
-                    .offset(y: -side * 0.06)
-            }
-            .overlay(alignment: .bottomTrailing) {
-                // 首字（initial）仅当 toggle 开启且非空时显示在右下角。改位置调 .offset(x:y:)（x 负左正右，y 负上正下）；改字号调 size: max(9, side * 0.2)
-                if !initial.isEmpty {
-                    Text(initial)
-                        .font(.system(size: max(5, side * 0.15), weight: .semibold))
-                        .foregroundColor(.white.opacity(0.95))
-                        .padding(min(5, side * 0.08))
-                        .offset(x: -18, y: -18)
-                }
-            }
+                    .offset(y: -side * 0.06),
+                alignment: .center
+            )
+            .overlay(
+                Group {
+                    if !initial.isEmpty {
+                        Text(initial)
+                            .font(.system(size: max(5, side * 0.15), weight: .semibold))
+                            .foregroundColor(.white.opacity(0.95))
+                            .padding(min(5, side * 0.08))
+                            .offset(x: -18, y: -18)
+                    }
+                },
+                alignment: .bottomTrailing
+            )
             .frame(width: side, height: side)
             .clipped()
     }

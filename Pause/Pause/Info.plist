@@ -24,7 +24,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.pause.app.record</string>
+			<string>com.yangzhao.pause.app.record</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>pause</string>
