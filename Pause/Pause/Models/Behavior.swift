@@ -10,19 +10,19 @@ import SwiftUI
 
 /// 固定 4 个行为槽位，id 为 b1, b2, b3, b4；用户可配置 1～4 个，首次安装仅 1 个默认
 enum Behavior {
-    /// 莫兰迪配色（与主页按键、日历圆点一致）：避免偏灰，保持可点击感
+    /// 1～4 按键与日历圆点一致：紫、橘、湖蓝、玫红
     static let morandiColors: [Color] = [
-        Color(red: 0.45, green: 0.62, blue: 0.58),  // 1: 青绿
-        Color(red: 0.48, green: 0.54, blue: 0.72),  // 2: 灰蓝（偏蓝不偏灰）
-        Color(red: 0.70, green: 0.52, blue: 0.56),  // 3: 豆沙粉
-        Color(red: 0.52, green: 0.64, blue: 0.48)   // 4: 橄榄绿
+        Color(red: 0.55, green: 0.40, blue: 0.72),  // 1: 紫色
+        Color(red: 0.92, green: 0.52, blue: 0.25), // 2: 橘色
+        Color(red: 0.22, green: 0.58, blue: 0.82), // 3: 湖蓝
+        Color(red: 0.88, green: 0.32, blue: 0.48)  // 4: 玫红
     ]
     /// 按键渐变用深色
     static let morandiDarkColors: [Color] = [
-        Color(red: 0.38, green: 0.52, blue: 0.50),
-        Color(red: 0.38, green: 0.44, blue: 0.60),
-        Color(red: 0.58, green: 0.42, blue: 0.46),
-        Color(red: 0.42, green: 0.52, blue: 0.40)
+        Color(red: 0.45, green: 0.30, blue: 0.62),
+        Color(red: 0.78, green: 0.42, blue: 0.18),
+        Color(red: 0.15, green: 0.45, blue: 0.68),
+        Color(red: 0.72, green: 0.24, blue: 0.38)
     ]
     static func morandiColor(at index: Int) -> Color {
         morandiColors[index % morandiColors.count]
