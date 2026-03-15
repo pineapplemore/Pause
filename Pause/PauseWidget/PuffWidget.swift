@@ -213,21 +213,24 @@ struct PuffWidgetSmallView: View {
         let count = entry.todayCountPerId[id] ?? 0
 
         let initial: String = entry.showInitialOnWidget && index < entry.behaviorInitials.count && !entry.behaviorInitials[index].isEmpty ? entry.behaviorInitials[index] : ""
+        let buttonCount = entry.behaviorIds.count
         #if !NO_APP_INTENTS && canImport(AppIntents)
         if #available(iOS 17.0, *) {
             Button(intent: RecordPuffIntent(behaviorId: id)) {
-                widgetButtonContent(label: label, count: count, side: side, interactive: true, colorIndex: index, initial: initial)
+                widgetButtonContent(label: label, count: count, side: side, interactive: true, colorIndex: index, initial: initial, buttonCount: buttonCount)
             }
             .buttonStyle(.plain)
         } else {
-            widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial)
+            widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial, buttonCount: buttonCount)
         }
         #else
-        widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial)
+        widgetButtonContent(label: label, count: count, side: side, interactive: false, colorIndex: index, initial: initial, buttonCount: buttonCount)
         #endif
     }
 
-    private func widgetButtonContent(label: String, count: Int, side: CGFloat, interactive: Bool, colorIndex: Int, initial: String = "") -> some View {
+    private func widgetButtonContent(label: String, count: Int, side: CGFloat, interactive: Bool, colorIndex: Int, initial: String = "", buttonCount: Int = 1) -> some View {
+        // 仅单键时保持固定角标偏移 -18；多键时用较小比例让角标更贴右下角（与数字拉开）
+        let badgeOffset: CGFloat = buttonCount == 1 ? 18 : (side * 0.16)
         let imageName = "BehaviorButtonIcon\(colorIndex + 1)"
         return Image(imageName)
             .resizable()
@@ -249,7 +252,7 @@ struct PuffWidgetSmallView: View {
                             .font(.system(size: max(5, side * 0.15), weight: .semibold))
                             .foregroundColor(.white.opacity(0.95))
                             .padding(min(5, side * 0.08))
-                            .offset(x: -18, y: -18)
+                            .offset(x: -badgeOffset, y: -badgeOffset)
                     }
                 },
                 alignment: .bottomTrailing

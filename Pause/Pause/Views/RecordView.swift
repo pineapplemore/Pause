@@ -27,9 +27,24 @@ struct RecordView: View {
     @State private var showPaywall = false
     @State private var showInitialOnWidget = false
     @State private var widgetInitials: [String] = ["", "", "", ""]
-    
+    @State private var showCountOnHome = true
+
     private var behaviorNames: [String] {
         appState.behaviorNames()
+    }
+
+    /// 今日各行为次数（与小组件同源：App Group 记录），用于主页展示
+    private var todayCountPerBehaviorId: [String: Int] {
+        let cal = Calendar.current
+        let today = Date()
+        let list = appState.records.filter { cal.isDate($0.timestamp, inSameDayAs: today) }
+        var dict: [String: Int] = [:]
+        for rec in list {
+            for id in rec.typeIds where Behavior.ids.contains(id) {
+                dict[id, default: 0] += 1
+            }
+        }
+        return dict
     }
     
     var body: some View {
@@ -45,7 +60,7 @@ struct RecordView: View {
                     behaviorButtonsSection
                         .padding(.bottom, 28)
 
-                    // 记录成功反馈：固定高度，避免出现时把下方模块顶下去再弹回
+                    // 记录成功反馈：固定高度，避免出现时把下方模块顶下去再弹回（放在今日次数上方）
                     ZStack(alignment: .center) {
                         if showRecorded, let time = lastRecordTime {
                         HStack(spacing: 6) {
@@ -67,13 +82,22 @@ struct RecordView: View {
                     .frame(height: 28)
                     .animation(.easeOut(duration: 0.2), value: showRecorded)
 
+                    // 今日次数（可 toggle 关闭，与小组件同源）
+                    todayCountSection
+                        .padding(.bottom, 24)
+
                     // 行为管理 + 小组件（首字）模块
                     managementSection
                 }
                 .padding(.bottom, 32)
                 .onAppear {
+                    appState.refresh()
                     showInitialOnWidget = StorageService.shared.showInitialOnWidget()
                     widgetInitials = StorageService.shared.widgetBehaviorInitials()
+                    showCountOnHome = StorageService.shared.showCountOnHome()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                    appState.refresh()
                 }
             }
             .simultaneousGesture(
@@ -199,6 +223,55 @@ struct RecordView: View {
         }
         .frame(height: behaviorNames.count == 1 ? 120 : (behaviorNames.count == 2 ? 120 : 220))
         .padding(.horizontal, 24)
+    }
+
+    private var todayCountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(L10n.todayCountSectionTitle(appState.isChinese))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 0)
+                Toggle("", isOn: Binding(
+                    get: { showCountOnHome },
+                    set: {
+                        showCountOnHome = $0
+                        StorageService.shared.setShowCountOnHome($0)
+                    }
+                ))
+                .labelsHidden()
+            }
+            Text(L10n.showTodayCountOnHome(appState.isChinese))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if showCountOnHome {
+                let names = behaviorNames
+                let ids = Array(Behavior.ids.prefix(names.count))
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(ids.enumerated()), id: \.offset) { index, id in
+                        HStack {
+                            Text(index < names.count ? names[index] : id)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            Spacer(minLength: 0)
+                            Text("\(todayCountPerBehaviorId[id] ?? 0)")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.accentColor)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 20)
     }
 
     private var managementSection: some View {

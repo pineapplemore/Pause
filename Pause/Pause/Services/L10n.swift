@@ -150,6 +150,8 @@ enum L10n {
     static func widgetInitialPlaceholder(_ isChinese: Bool) -> String { isChinese ? "首字（选填）" : "Initial (optional)" }
     static func widgetSectionTitle(_ isChinese: Bool) -> String { isChinese ? "小组件" : "Widget" }
     static func saveToWidget(_ isChinese: Bool) -> String { isChinese ? "保存到小组件" : "Save to widget" }
+    static func todayCountSectionTitle(_ isChinese: Bool) -> String { isChinese ? "今日次数" : "Today's count" }
+    static func showTodayCountOnHome(_ isChinese: Bool) -> String { isChinese ? "显示今日次数" : "Show today's count" }
     static func removeLastBehavior(_ isChinese: Bool) -> String { isChinese ? "移除最后一个行为" : "Remove last behavior" }
     static func restorePreset(_ isChinese: Bool) -> String { isChinese ? "恢复预设（1 个）" : "Restore preset (1)" }
     static func widgetFavoriteTagsTitle(_ isChinese: Bool) -> String { isChinese ? "小组件常用标签" : "Widget quick tags" }

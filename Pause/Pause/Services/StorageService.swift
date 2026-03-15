@@ -24,6 +24,8 @@ let kPauseAppLanguageIsChinese = "Pause.appLanguageIsChinese"
 private let kShowInitialOnWidget = "Pause.showInitialOnWidget"
 /// 小组件 1～4 个行为各自的自定义首字（空表示不显示）
 private let kWidgetBehaviorInitials = "Pause.widgetBehaviorInitials"
+/// 主页是否显示「今日次数」模块（默认 true）
+private let kShowCountOnHome = "Pause.showCountOnHome"
 
 final class StorageService {
     static let shared = StorageService()
@@ -149,6 +151,17 @@ final class StorageService {
         }
     }
 
+    /// 主页是否显示今日次数模块（默认 true）
+    func showCountOnHome() -> Bool {
+        if defaults.object(forKey: kShowCountOnHome) == nil { return true }
+        return defaults.bool(forKey: kShowCountOnHome)
+    }
+
+    func setShowCountOnHome(_ value: Bool) {
+        defaults.set(value, forKey: kShowCountOnHome)
+        defaults.synchronize()
+    }
+
     func loadRecords() -> [PuffRecord] {
         guard let data = defaults.data(forKey: key),
               let decoded = try? JSONDecoder().decode([PuffRecord].self, from: data) else {
@@ -168,6 +181,10 @@ final class StorageService {
         list.insert(record, at: 0)
         saveRecords(list)
         WidgetCenter.shared.reloadAllTimelines()
+        // 延迟再刷一次小组件，确保 App Group 写入对扩展进程可见后再请求新 timeline
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            WidgetCenter.shared.reloadTimelines(ofKind: "PauseWidget")
+        }
     }
     
     func deleteRecord(id: UUID) {
