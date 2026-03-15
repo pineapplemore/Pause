@@ -52,8 +52,7 @@ private func widgetBehaviorNames() -> [String] {
     let suite = UserDefaults(suiteName: kAppGroupSuite) ?? UserDefaults.standard
     let stored = suite.stringArray(forKey: kBehaviorNamesKey) ?? []
     if stored.isEmpty {
-        let isChinese = suite.object(forKey: kPauseAppLanguageIsChinese) == nil ? true : suite.bool(forKey: kPauseAppLanguageIsChinese)
-        return [isChinese ? "咬指甲" : "Nail biting"]
+        return [widgetAppLanguageIsChinese() ? "咬指甲" : "Nail biting"]
     }
     return stored
 }
@@ -64,11 +63,12 @@ private func widgetBehaviorIds() -> [String] {
     return Array(kBehaviorIds.prefix(names.count))
 }
 
-/// 与 App 内语言一致：App 切到英文后小组件弹出页等均显示英文
+/// 与 App 内语言一致：App 切到英文后小组件弹出页等均显示英文；未写入时按系统语言（添加小组件时描述与系统一致）
 private func widgetAppLanguageIsChinese() -> Bool {
     let suite = UserDefaults(suiteName: kAppGroupSuite) ?? UserDefaults.standard
-    guard suite.object(forKey: kPauseAppLanguageIsChinese) != nil else { return true }
-    return suite.bool(forKey: kPauseAppLanguageIsChinese)
+    if let stored = suite.object(forKey: kPauseAppLanguageIsChinese) as? Bool { return stored }
+    let lang = Locale.current.language.languageCode?.identifier ?? ""
+    return lang.hasPrefix("zh")
 }
 
 private func widgetShowInitialOnWidget() -> Bool {
