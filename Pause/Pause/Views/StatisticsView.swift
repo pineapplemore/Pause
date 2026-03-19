@@ -43,9 +43,9 @@ struct StatisticsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                     // 不受周期影响的固定块：放上面
-                    WeekOverWeekCard(appState: appState)
                     HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
                     Last7RecordDaysChartCard(appState: appState)
+                    RecentRecordDaysDailyCard(appState: appState)
                     
                     // 统计周期选择（仅影响下面的本周期汇总、周期对比、标签分布）
                     VStack(alignment: .leading, spacing: 8) {
@@ -357,7 +357,7 @@ struct HourlyChartCard: View {
                         .frame(height: 200)
                         .frame(maxWidth: .infinity)
                 } else {
-                    SimpleMultiLineChartView(xLabels: xLabels, series: series)
+                    SimpleMultiLineChartView(xLabels: xLabels, series: series, showHourAxis: true)
                         .frame(height: 200)
                 }
             } else {
@@ -465,8 +465,129 @@ struct Last7RecordDaysChartCard: View {
                     .frame(maxWidth: .infinity)
             } else {
                 MultiLineChartView(days: days, maxValue: max(globalMax, 1), colors: kMorandiChartColors)
-                    .frame(height: 200)
+                    .frame(height: 202)
                 last7LegendView(days: days)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// 最近 N 个有记录日：各行为「当日次数」折线（与上方按小时卡片分开；默认 7，可自定义 N）
+struct RecentRecordDaysDailyCard: View {
+    @ObservedObject var appState: AppState
+    @State private var recordDaysInput: String = "7"
+    @State private var selectedBehaviorIdKey: String = ""
+
+    /// 1…365（约一年内有记录日上限），非法或空按 7
+    private var recordDaysN: Int {
+        let t = recordDaysInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let v = Int(t), v >= 1 else { return 7 }
+        return min(v, 365)
+    }
+
+    private static func dateLabel(for date: Date, isChinese: Bool) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = isChinese ? "M/d" : "MMM d"
+        fmt.locale = Locale(identifier: isChinese ? "zh_Hans" : "en_US")
+        return fmt.string(from: date)
+    }
+
+    private var selectedBehaviorId: String? { selectedBehaviorIdKey.isEmpty ? nil : selectedBehaviorIdKey }
+
+    private var behaviorOptions: [(id: String, name: String)] {
+        [("", L10n.allBehaviors(appState.isChinese))] + appState.allAvailableTagOptions().map { ($0.id, $0.name) }
+    }
+
+    private func dayHasRecord(_ date: Date) -> Bool {
+        let list = appState.records(on: date)
+        if let bid = selectedBehaviorId {
+            return list.contains { $0.typeIds.contains(bid) }
+        }
+        return !list.isEmpty
+    }
+
+    /// 旧→新，便于横轴从左到右
+    private var recordDaysChronological: [Date] {
+        let cal = Calendar.current
+        var d = cal.startOfDay(for: Date())
+        var found: [Date] = []
+        // 记录稀疏时需多扫日历天才能凑满 N 个有记录日（例如 N=365）
+        for _ in 0..<5000 {
+            if dayHasRecord(d) {
+                found.append(d)
+                if found.count >= recordDaysN { break }
+            }
+            guard let next = cal.date(byAdding: .day, value: -1, to: d) else { break }
+            d = next
+        }
+        return found.reversed()
+    }
+
+    private var xLabels: [String] {
+        recordDaysChronological.map { Self.dateLabel(for: $0, isChinese: appState.isChinese) }
+    }
+
+    private var chartSeries: [(name: String, color: Color, values: [Int])] {
+        let days = recordDaysChronological
+        let colors = behaviorTrendColors()
+        if let bid = selectedBehaviorId {
+            guard let idx = Behavior.ids.firstIndex(of: bid) else { return [] }
+            let names = appState.behaviorNames()
+            let name = idx < names.count ? names[idx] : bid
+            let values = days.map { d in
+                appState.records(on: d).filter { $0.typeIds.contains(bid) }.count
+            }
+            return [(name, colors[idx % colors.count], values)]
+        }
+        let ids = Array(Behavior.ids.prefix(appState.behaviorNames().count))
+        let names = appState.behaviorNames()
+        return ids.enumerated().map { idx, id in
+            let name = idx < names.count ? names[idx] : id
+            let values = days.map { d in
+                appState.records(on: d).filter { $0.typeIds.contains(id) }.count
+            }
+            return (name, colors[idx % colors.count], values)
+        }
+    }
+
+    var body: some View {
+        let days = recordDaysChronological
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L10n.recentRecordDaysDailyTitle(appState.isChinese))
+                .font(.headline)
+            HStack(alignment: .center, spacing: 10) {
+                Text(L10n.recentRecordDaysCountPicker(appState.isChinese))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                TextField("7", text: $recordDaysInput)
+                    .keyboardType(.numberPad)
+                    .font(.body.monospacedDigit())
+                    .multilineTextAlignment(.center)
+                    .frame(width: 52)
+                    .textFieldStyle(.roundedBorder)
+            }
+            Picker("", selection: $selectedBehaviorIdKey) {
+                ForEach(behaviorOptions, id: \.id) { opt in
+                    Text(opt.name).tag(opt.id)
+                }
+            }
+            .pickerStyle(.menu)
+            Text(L10n.recentRecordDaysDailyHint(appState.isChinese))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if days.isEmpty {
+                Text(appState.isChinese ? "暂无有记录日" : "No days with records")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity)
+            } else {
+                SimpleMultiLineChartView(xLabels: xLabels, series: chartSeries, showSparseDateAxis: true)
+                    .frame(height: 220)
             }
         }
         .padding()
@@ -483,76 +604,88 @@ struct MultiLineChartView: View {
     let colors: [Color]
     
     var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let stepX = (w - 24) / 24
-            let maxVal = CGFloat(maxValue)
-            ZStack(alignment: .bottom) {
-                ForEach(Array(days.enumerated()), id: \.offset) { idx, day in
-                    let pts = day.counts.enumerated().map { i, v -> CGPoint in
-                        let x = 12 + CGFloat(i) * stepX + stepX / 2
-                        let y = h - 20 - (maxVal > 0 ? (CGFloat(v) / maxVal) * (h - 32) : 0)
-                        return CGPoint(x: x, y: y)
-                    }
-                    if pts.count >= 2 {
-                        Path { p in
-                            p.move(to: pts[0])
-                            for pt in pts.dropFirst() { p.addLine(to: pt) }
+        VStack(spacing: 4) {
+            GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
+                let stepX = (w - 24) / 24
+                let maxVal = CGFloat(maxValue)
+                ZStack(alignment: .bottom) {
+                    ForEach(Array(days.enumerated()), id: \.offset) { idx, day in
+                        let pts = day.counts.enumerated().map { i, v -> CGPoint in
+                            let x = 12 + CGFloat(i) * stepX + stepX / 2
+                            let y = h - 8 - (maxVal > 0 ? (CGFloat(v) / maxVal) * (h - 20) : 0)
+                            return CGPoint(x: x, y: y)
                         }
-                        .stroke(colors[idx % colors.count], lineWidth: 2)
+                        if pts.count >= 2 {
+                            Path { p in
+                                p.move(to: pts[0])
+                                for pt in pts.dropFirst() { p.addLine(to: pt) }
+                            }
+                            .stroke(colors[idx % colors.count], lineWidth: 2)
+                        }
                     }
                 }
+            }
+            .frame(height: 186)
+            HourlyChartXAxisLabels()
+                .frame(height: 12)
+        }
+    }
+}
+
+/// 行为趋势 / 有记录日汇总：横轴日期稀疏标注
+private struct SparseDateAxisLabels: View {
+    let labels: [String]
+
+    private var markedIndices: Set<Int> {
+        let n = labels.count
+        guard n > 0 else { return [] }
+        if n <= 8 { return Set(0..<n) }
+        var s: Set<Int> = [0, n - 1]
+        let step = max(1, (n - 1) / 6)
+        var i = 0
+        while i < n {
+            s.insert(i)
+            i += step
+        }
+        s.insert(n - 1)
+        return s
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(labels.enumerated()), id: \.offset) { i, label in
+                Text(markedIndices.contains(i) ? label : "")
+                    .font(.system(size: 8, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
             }
         }
     }
 }
 
-struct WeekOverWeekCard: View {
-    @ObservedObject var appState: AppState
-    
-    private var thisWeekCount: Int {
-        let cal = Calendar.current
-        let now = Date()
-        let start = cal.date(byAdding: .day, value: -6, to: cal.startOfDay(for: now)) ?? now
-        return appState.records(from: start, to: now).count
-    }
-    
-    private var lastWeekCount: Int {
-        let cal = Calendar.current
-        let now = Date()
-        let endOfLast = cal.date(byAdding: .day, value: -7, to: now) ?? now
-        let startOfLast = cal.date(byAdding: .day, value: -13, to: now) ?? now
-        return appState.records(from: startOfLast, to: endOfLast).count
-    }
-    
+/// 时段图横轴：0–23 点（稀疏刻度）
+private struct HourlyChartXAxisLabels: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.vsLastWeek(appState.isChinese))
-                .font(.headline)
-            HStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(appState.isChinese ? "本周" : "This week")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("\(thisWeekCount)")
-                        .font(.title2.weight(.semibold))
-                        .foregroundColor(Color.accentColor)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(appState.isChinese ? "上周" : "Last week")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("\(lastWeekCount)")
-                        .font(.title2.weight(.semibold))
-                        .foregroundColor(Color("SecondaryColor"))
-                }
+        HStack(spacing: 0) {
+            ForEach(0..<24, id: \.self) { hour in
+                Text(Self.tick(for: hour))
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
             }
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    private static func tick(for hour: Int) -> String {
+        switch hour {
+        case 0, 6, 12, 18: return "\(hour)"
+        case 23: return "23"
+        default: return ""
+        }
     }
 }
 
@@ -568,41 +701,44 @@ struct SimpleLineChartView: View {
     }
     
     var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let stepX = data.isEmpty ? 0 : (w - 24) / CGFloat(data.count)
-            let points: [(CGFloat, CGFloat)] = data.enumerated().map { i, v in
-                let x = 12 + CGFloat(i) * stepX + stepX / 2
-                let y = h - 20 - (CGFloat(v) / maxValue) * (h - 32)
-                return (x, y)
-            }
-            ZStack(alignment: .bottom) {
-                // 区域填充
-                if !points.isEmpty {
-                    Path { p in
-                        p.move(to: CGPoint(x: points[0].0, y: h - 20))
-                        for pt in points { p.addLine(to: CGPoint(x: pt.0, y: pt.1)) }
-                        p.addLine(to: CGPoint(x: points.last!.0, y: h - 20))
-                        p.closeSubpath()
-                    }
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.05)],
-                            startPoint: .top,
-                            endPoint: .bottom
+        VStack(spacing: 4) {
+            GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
+                let stepX = data.isEmpty ? 0 : (w - 24) / CGFloat(data.count)
+                let points: [(CGFloat, CGFloat)] = data.enumerated().map { i, v in
+                    let x = 12 + CGFloat(i) * stepX + stepX / 2
+                    let y = h - 8 - (CGFloat(v) / maxValue) * (h - 20)
+                    return (x, y)
+                }
+                ZStack(alignment: .bottom) {
+                    if !points.isEmpty {
+                        Path { p in
+                            p.move(to: CGPoint(x: points[0].0, y: h - 8))
+                            for pt in points { p.addLine(to: CGPoint(x: pt.0, y: pt.1)) }
+                            p.addLine(to: CGPoint(x: points.last!.0, y: h - 8))
+                            p.closeSubpath()
+                        }
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.05)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                }
-                // 折线
-                if points.count >= 2 {
-                    Path { p in
-                        p.move(to: CGPoint(x: points[0].0, y: points[0].1))
-                        for pt in points.dropFirst() { p.addLine(to: CGPoint(x: pt.0, y: pt.1)) }
                     }
-                    .stroke(Color.accentColor, lineWidth: 2)
+                    if points.count >= 2 {
+                        Path { p in
+                            p.move(to: CGPoint(x: points[0].0, y: points[0].1))
+                            for pt in points.dropFirst() { p.addLine(to: CGPoint(x: pt.0, y: pt.1)) }
+                        }
+                        .stroke(Color.accentColor, lineWidth: 2)
+                    }
                 }
             }
+            .frame(height: 168)
+            HourlyChartXAxisLabels()
+                .frame(height: 12)
         }
     }
 }
@@ -612,37 +748,62 @@ struct SimpleMultiLineChartView: View {
     let xLabels: [String]
     /// 每条线：(名称, 颜色, 每日数值)
     let series: [(name: String, color: Color, values: [Int])]
-    
+    /// 为 true 时在底部绘制 0–23 点横轴（仅时段分布图）
+    var showHourAxis: Bool = false
+    /// 为 true 时在底部按日期稀疏标注（行为趋势、有记录日汇总）
+    var showSparseDateAxis: Bool = false
+
     private var maxValue: CGFloat {
         let m = series.flatMap(\.values).max() ?? 1
         return CGFloat(max(m, 1))
     }
-    
+
+    private var chartPlotHeight: CGFloat {
+        if showHourAxis || showSparseDateAxis { return 148 }
+        return 160
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            GeometryReader { geo in
-                let w = geo.size.width
-                let h = geo.size.height - 16
-                let n = max(xLabels.count, 1)
-                let stepX = (w - 24) / CGFloat(n)
-                ZStack(alignment: .bottom) {
-                    ForEach(Array(series.enumerated()), id: \.offset) { _, s in
-                        if s.values.count >= 2, stepX > 0 {
-                            Path { p in
-                                for (i, v) in s.values.enumerated() {
-                                    let x = 12 + CGFloat(i) * stepX + stepX / 2
-                                    let y = h - 12 - (CGFloat(v) / maxValue) * (h - 24)
-                                    if i == 0 { p.move(to: CGPoint(x: x, y: y)) }
-                                    else { p.addLine(to: CGPoint(x: x, y: y)) }
+            VStack(spacing: 4) {
+                GeometryReader { geo in
+                    let w = geo.size.width
+                    let h = geo.size.height
+                    let n = max(xLabels.count, 1)
+                    let stepX = (w - 24) / CGFloat(n)
+                    ZStack(alignment: .bottom) {
+                        ForEach(Array(series.enumerated()), id: \.offset) { _, s in
+                            if s.values.count >= 2, stepX > 0 {
+                                Path { p in
+                                    for (i, v) in s.values.enumerated() {
+                                        let x = 12 + CGFloat(i) * stepX + stepX / 2
+                                        let y = h - 8 - (CGFloat(v) / maxValue) * (h - 20)
+                                        if i == 0 { p.move(to: CGPoint(x: x, y: y)) }
+                                        else { p.addLine(to: CGPoint(x: x, y: y)) }
+                                    }
                                 }
+                                .stroke(s.color, lineWidth: 2)
+                            } else if s.values.count == 1, stepX > 0 {
+                                let v = s.values[0]
+                                let x = 12 + stepX / 2
+                                let y = h - 8 - (CGFloat(v) / maxValue) * (h - 20)
+                                Path { p in
+                                    p.addEllipse(in: CGRect(x: x - 3, y: y - 3, width: 6, height: 6))
+                                }
+                                .fill(s.color)
                             }
-                            .stroke(s.color, lineWidth: 2)
                         }
                     }
                 }
-                .frame(height: h)
+                .frame(height: chartPlotHeight)
+                if showHourAxis {
+                    HourlyChartXAxisLabels()
+                        .frame(height: 12)
+                } else if showSparseDateAxis {
+                    SparseDateAxisLabels(labels: xLabels)
+                        .frame(height: 14)
+                }
             }
-            .frame(height: 160)
             HStack(spacing: 12) {
                 ForEach(Array(series.enumerated()), id: \.offset) { _, s in
                     HStack(spacing: 4) {
@@ -735,7 +896,7 @@ struct BehaviorTrendCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(L10n.behaviorTrendTitle(appState.isChinese))
                         .font(.headline)
-                    SimpleMultiLineChartView(xLabels: xLabels, series: series)
+                    SimpleMultiLineChartView(xLabels: xLabels, series: series, showSparseDateAxis: true)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -780,12 +941,13 @@ struct PeriodComparisonCard: View {
     private var comparisonData: [(label: String, value: Int)] {
         let cal = Calendar.current
         let now = Date()
+        let isZh = appState.isChinese
         switch period {
         case .week:
             var result: [(String, Int)] = []
             let fmt = DateFormatter()
             fmt.dateFormat = "M/d"
-            fmt.locale = Locale(identifier: "zh_Hans")
+            fmt.locale = Locale(identifier: isZh ? "zh_Hans" : "en_US")
             for i in (0..<7).reversed() {
                 guard let d = cal.date(byAdding: .day, value: -i, to: cal.startOfDay(for: now)) else { continue }
                 result.append((fmt.string(from: d), appState.count(on: d)))
@@ -802,8 +964,8 @@ struct PeriodComparisonCard: View {
             default: monthsBack = 1
             }
             let fmt = DateFormatter()
-            fmt.dateFormat = "M月"
-            fmt.locale = Locale(identifier: "zh_Hans")
+            fmt.dateFormat = isZh ? "M月" : "MMM"
+            fmt.locale = Locale(identifier: isZh ? "zh_Hans" : "en_US")
             var result: [(String, Int)] = []
             for i in (0..<monthsBack).reversed() {
                 guard let d = cal.date(byAdding: .month, value: -i, to: now) else { continue }

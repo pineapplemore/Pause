@@ -47,8 +47,22 @@ enum L10n {
         let str = fmt.string(from: date)
         return isChinese ? "最近一次记录日：\(str)" : "Last record: \(str)"
     }
-    static func last7RecordDaysTitle(_ isChinese: Bool) -> String { isChinese ? "最近 7 个有记录日对比" : "Last 7 days with records" }
-    static func last7RecordDaysHint(_ isChinese: Bool) -> String { isChinese ? "按 0–23 点时段，7 天用不同颜色" : "By hour (0–23), 7 days in different colors" }
+    static func last7RecordDaysTitle(_ isChinese: Bool) -> String {
+        isChinese ? "最近 7 个有记录日对比" : "7 most recent days with records"
+    }
+    static func last7RecordDaysHint(_ isChinese: Bool) -> String {
+        isChinese ? "从今日往前跳过无记录日；横轴为 0–23 点，每天一色" : "Skips days with no data; x-axis is hour 0–23, one color per day"
+    }
+    /// 与「7 日 × 24 点」分开：按有记录日汇总每日次数（多行为多条线）
+    static func recentRecordDaysDailyTitle(_ isChinese: Bool) -> String {
+        isChinese ? "最近有记录日 · 每日次数" : "Days with records · daily totals"
+    }
+    static func recentRecordDaysDailyHint(_ isChinese: Bool) -> String {
+        isChinese
+            ? "从今日往前取有记录日，折线为各行为当日总次数；无记录日不计入。默认 7 天，可输入 1–365（约一年上限）。"
+            : "Backward from today, only days with data. Lines show daily totals per behavior. Default 7; enter 1–365 (about one year max)."
+    }
+    static func recentRecordDaysCountPicker(_ isChinese: Bool) -> String { isChinese ? "有记录日数量 (N)" : "Days with records (N)" }
     
     static func dayDetailTitleFormat(_ isChinese: Bool) -> String { isChinese ? "M月d日" : "MMM d" }
     static func dayDetailTotal(_ isChinese: Bool) -> String { isChinese ? "共" : "" }
@@ -75,7 +89,6 @@ enum L10n {
     static func peakHour(_ isChinese: Bool) -> String { isChinese ? "一天中的高光时刻" : "Peak hours" }
     static func consecutiveDays(_ isChinese: Bool) -> String { isChinese ? "连续记录" : "Streak" }
     static func daysSuffix(_ isChinese: Bool) -> String { isChinese ? "天" : " days" }
-    static func vsLastWeek(_ isChinese: Bool) -> String { isChinese ? "与上周对比" : "vs last week" }
     static func weekdaysDistribution(_ isChinese: Bool) -> String { isChinese ? "星期分布" : "By weekday" }
     static func weekdayLabels(_ isChinese: Bool) -> [String] {
         isChinese ? ["日", "一", "二", "三", "四", "五", "六"] : ["S", "M", "T", "W", "T", "F", "S"]
