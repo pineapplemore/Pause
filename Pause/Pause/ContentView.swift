@@ -75,7 +75,7 @@ struct DelayedPageLoadingModifier: ViewModifier {
             }
         }
         .onAppear {
-            contentReady = false
+            // 不在此处写 contentReady = false，避免与子视图 onAppear 竞态（子视图先 true 再被刷回 false → 遮罩永远不关）
             showDelayedLoading = false
             let t = UUID()
             appearToken = t

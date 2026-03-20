@@ -36,18 +36,16 @@ struct StatisticsView: View {
     @State private var showPaywall = false
     @State private var shareablePDFItem: ShareablePDFItem?
     @State private var exportError: String?
-    /// 延迟加载：首块图表出现后视为首屏就绪（LazyVStack 底部 onAppear 可能需滚动才触发）
+    /// 延迟加载就绪标志（与 .delayedPageLoading 配合；进入本页 onAppear 会置 true，避免 LazyVStack 导致永远不就绪）
     @State private var statsContentReady = false
 
     /// 拆出子视图，减轻 Swift 类型检查负担（远程 Xcode 易报 unable to type-check）
     @ViewBuilder
     private var statisticsScrollStack: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 24) {
+            // 使用 VStack：LazyVStack 时首块图表若很高，下一行的 Color.clear 可能未创建，onAppear 永不触发 → 「正在加载统计」一直显示
+            VStack(alignment: .leading, spacing: 24) {
                 HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
-                Color.clear
-                    .frame(height: 1)
-                    .onAppear { statsContentReady = true }
                 Last7RecordDaysChartCard(appState: appState)
                 RecentRecordDaysDailyCard(appState: appState)
                 statsPeriodPickerSection
@@ -63,6 +61,8 @@ struct StatisticsView: View {
             message: L10n.statisticsLoading(appState.isChinese),
             contentReady: $statsContentReady
         )
+        // 从其他 Tab 回到统计时子视图未必再触发 onAppear，补一次就绪
+        .onAppear { statsContentReady = true }
     }
 
     @ViewBuilder
