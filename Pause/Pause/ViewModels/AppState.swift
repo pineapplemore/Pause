@@ -120,7 +120,7 @@ final class AppState: ObservableObject {
     }
     
     func record(byId id: UUID) -> PuffRecord? {
-        storage.record(byId: id)
+        records.first { $0.id == id }
     }
     
     func clearLastRecordedId() {
@@ -133,28 +133,48 @@ final class AppState: ObservableObject {
     }
     
     func records(on date: Date) -> [PuffRecord] {
-        storage.records(on: date)
+        let cal = Calendar.current
+        return records.filter { cal.isDate($0.timestamp, inSameDayAs: date) }
     }
     
     func count(on date: Date) -> Int {
-        storage.count(on: date)
+        records(on: date).count
     }
     
     func records(from start: Date, to end: Date) -> [PuffRecord] {
-        storage.records(from: start, to: end)
+        records.filter { $0.timestamp >= start && $0.timestamp <= end }
     }
     
     func hourlyCounts(for dates: [Date], behaviorId: String? = nil) -> [Int] {
-        storage.hourlyCounts(for: dates, behaviorId: behaviorId)
+        let cal = Calendar.current
+        var counts = Array(repeating: 0, count: 24)
+        let dayStarts = Set(dates.map { cal.startOfDay(for: $0) })
+        for record in records {
+            let day = cal.startOfDay(for: record.timestamp)
+            guard dayStarts.contains(day) else { continue }
+            if let bid = behaviorId {
+                guard record.typeIds.contains(bid) else { continue }
+            }
+            let hour = cal.component(.hour, from: record.timestamp)
+            counts[hour] += 1
+        }
+        return counts
     }
     
     func tagDistribution(from start: Date, to end: Date) -> [(String, Int)] {
-        storage.tagDistribution(from: start, to: end)
+        let list = records(from: start, to: end)
+        var dict: [String: Int] = [:]
+        for rec in list {
+            for id in rec.typeIds {
+                dict[id, default: 0] += 1
+            }
+        }
+        return dict.sorted { $0.value > $1.value }
     }
 
     /// 按「记录时的行为名称」分组统计；用户改名后历史与新记录会分开显示
     func behaviorDistribution(from start: Date, to end: Date) -> [(name: String, count: Int)] {
-        let list = storage.records(from: start, to: end)
+        let list = records(from: start, to: end)
         var dict: [String: Int] = [:]
         for rec in list {
             let name = rec.recordedBehaviorName ?? displayNameForTagId(rec.typeIds.first ?? "")
@@ -164,18 +184,49 @@ final class AppState: ObservableObject {
     }
     
     var consecutiveRecordDays: Int {
-        storage.consecutiveRecordDays()
+        let cal = Calendar.current
+        var d = cal.startOfDay(for: Date())
+        let daysWithRecords = Set(records.map { cal.startOfDay(for: $0.timestamp) })
+        var c = 0
+        while c < 365 {
+            if !daysWithRecords.contains(d) { break }
+            c += 1
+            guard let next = cal.date(byAdding: .day, value: -1, to: d) else { break }
+            d = next
+        }
+        return c
     }
     
     func peakHour(from dates: [Date], behaviorId: String? = nil) -> Int? {
-        let counts = storage.hourlyCounts(for: dates, behaviorId: behaviorId)
+        let counts = hourlyCounts(for: dates, behaviorId: behaviorId)
         guard let maxVal = counts.max(), maxVal > 0 else { return nil }
         return counts.firstIndex(of: maxVal)
     }
 
-    /// 周期内每日、每行为 b1～b4 的计数（统计页多行为折线用）
+    /// 周期内每日、每行为 b1～b4 的计数（统计页多行为折线用）；单次遍历内存中的 records，避免按天反复读盘
     func behaviorCountsPerDay(from start: Date, to end: Date) -> [(date: Date, counts: [String: Int])] {
-        storage.behaviorCountsPerDay(from: start, to: end)
+        let cal = Calendar.current
+        let startDay = cal.startOfDay(for: start)
+        let endDay = cal.startOfDay(for: end)
+        var byDay: [Date: [String: Int]] = [:]
+        for rec in records {
+            let t = rec.timestamp
+            guard t >= start && t <= end else { continue }
+            let day = cal.startOfDay(for: t)
+            guard day >= startDay && day <= endDay else { continue }
+            var dict = byDay[day] ?? [:]
+            for id in rec.typeIds where Behavior.ids.contains(id) {
+                dict[id, default: 0] += 1
+            }
+            byDay[day] = dict
+        }
+        var d = startDay
+        var result: [(Date, [String: Int])] = []
+        while d <= endDay {
+            result.append((d, byDay[d] ?? [:]))
+            d = cal.date(byAdding: .day, value: 1, to: d) ?? d
+        }
+        return result
     }
 
     var todayCount: Int {

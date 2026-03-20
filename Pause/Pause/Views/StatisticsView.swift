@@ -36,18 +36,19 @@ struct StatisticsView: View {
     @State private var showPaywall = false
     @State private var shareablePDFItem: ShareablePDFItem?
     @State private var exportError: String?
-    /// 延迟加载提示：避免 Tab 切换时整页计算卡住却无任何反馈
+    /// 延迟加载：首块图表出现后视为首屏就绪（LazyVStack 底部 onAppear 可能需滚动才触发）
     @State private var statsContentReady = false
-    @State private var showDelayedStatsLoading = false
-    @State private var statsAppearToken = UUID()
     
     var body: some View {
         NavigationView {
             ZStack(alignment: .top) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    LazyVStack(alignment: .leading, spacing: 24) {
                     // 不受周期影响的固定块：放上面
                     HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
+                    Color.clear
+                        .frame(height: 1)
+                        .onAppear { statsContentReady = true }
                     Last7RecordDaysChartCard(appState: appState)
                     RecentRecordDaysDailyCard(appState: appState)
                     
@@ -84,31 +85,15 @@ struct StatisticsView: View {
                     BehaviorTrendCard(appState: appState, period: selectedPeriod)
                     
                     PeriodComparisonCard(appState: appState, period: selectedPeriod)
-                    
-                    Color.clear
-                        .frame(height: 1)
-                        .onAppear { markStatsScrollContentReady() }
                 }
                 .padding()
                 }
                 .background(Color(.systemGroupedBackground).ignoresSafeArea())
-                if showDelayedStatsLoading && subscriptionManager.hasAccess {
-                    ZStack {
-                        Color(.systemBackground).opacity(0.75)
-                            .ignoresSafeArea()
-                        VStack(spacing: 14) {
-                            ProgressView()
-                                .scaleEffect(1.15)
-                            Text(L10n.statisticsLoading(appState.isChinese))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.opacity)
-                }
+                .delayedPageLoading(
+                    isOverlayEnabled: subscriptionManager.hasAccess,
+                    message: L10n.statisticsLoading(appState.isChinese),
+                    contentReady: $statsContentReady
+                )
                 if !subscriptionManager.hasAccess {
                     Color.black.opacity(0.5)
                         .ignoresSafeArea()
@@ -135,8 +120,6 @@ struct StatisticsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onAppear { scheduleStatsDelayedLoader() }
-            .onDisappear { resetStatsLoaderOnDisappear() }
             .navigationTitle(L10n.reportTitle(appState.isChinese))
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -183,30 +166,6 @@ struct StatisticsView: View {
             }
         }
         .navigationViewStyle(.stack)
-    }
-    
-    /// 约 0.35s 后若滚动内容底仍未出现，显示转圈（避免闪一下）
-    private func scheduleStatsDelayedLoader() {
-        statsContentReady = false
-        showDelayedStatsLoading = false
-        let token = UUID()
-        statsAppearToken = token
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            guard statsAppearToken == token else { return }
-            if !statsContentReady { showDelayedStatsLoading = true }
-        }
-    }
-    
-    private func markStatsScrollContentReady() {
-        statsContentReady = true
-        showDelayedStatsLoading = false
-    }
-    
-    private func resetStatsLoaderOnDisappear() {
-        statsAppearToken = UUID()
-        statsContentReady = false
-        showDelayedStatsLoading = false
     }
     
     private func exportPDFTapped() {

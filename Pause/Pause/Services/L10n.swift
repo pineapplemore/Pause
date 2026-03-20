@@ -32,6 +32,8 @@ enum L10n {
     static func statisticsTitle(_ isChinese: Bool) -> String { isChinese ? "统计" : "Statistics" }
     /// 统计页首屏较重：延迟约 0.35s 后仍无内容就绪时显示，减少「卡住」感
     static func statisticsLoading(_ isChinese: Bool) -> String { isChinese ? "正在加载统计…" : "Loading statistics…" }
+    /// 今日 / 日历等 Tab 首屏较重时的通用提示
+    static func pageLoading(_ isChinese: Bool) -> String { isChinese ? "正在加载…" : "Loading…" }
     static func periodLabel(_ isChinese: Bool) -> String { isChinese ? "统计周期" : "Period" }
     static func periodSummary(_ isChinese: Bool) -> String { isChinese ? "本周期汇总" : "Summary" }
     static func totalCount(_ isChinese: Bool) -> String { isChinese ? "总次数" : "Total" }

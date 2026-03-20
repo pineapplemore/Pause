@@ -10,6 +10,7 @@ struct CalendarView: View {
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @State private var currentMonth: Date = Date()
     @State private var showPaywall = false
+    @State private var calendarPageReady = false
     
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
@@ -18,6 +19,11 @@ struct CalendarView: View {
         NavigationView {
             ZStack(alignment: .top) {
                 fullCalendar
+                    .delayedPageLoading(
+                        isOverlayEnabled: subscriptionManager.hasAccess,
+                        message: L10n.pageLoading(appState.isChinese),
+                        contentReady: $calendarPageReady
+                    )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(.systemGroupedBackground).ignoresSafeArea())
                 if !subscriptionManager.hasAccess {
@@ -110,6 +116,10 @@ struct CalendarView: View {
                 }
             }
             .padding(.horizontal)
+
+            Color.clear
+                .frame(height: 1)
+                .onAppear { calendarPageReady = true }
             
             Spacer(minLength: 0)
         }

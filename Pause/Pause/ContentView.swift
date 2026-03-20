@@ -31,6 +31,9 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             appState.refresh()
         }
+        .onAppear {
+            _ = SubscriptionManager.shared
+        }
     }
 }
 

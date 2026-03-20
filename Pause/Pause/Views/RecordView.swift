@@ -28,6 +28,7 @@ struct RecordView: View {
     @State private var showInitialOnWidget = false
     @State private var widgetInitials: [String] = ["", "", "", ""]
     @State private var showCountOnHome = true
+    @State private var recordPageReady = false
 
     private var behaviorNames: [String] {
         appState.behaviorNames()
@@ -88,6 +89,10 @@ struct RecordView: View {
 
                     // 行为管理 + 小组件（首字）模块
                     managementSection
+
+                    Color.clear
+                        .frame(height: 1)
+                        .onAppear { recordPageReady = true }
                 }
                 .padding(.bottom, 32)
                 // 不在此 refresh：切 Tab 时 onAppear 会频繁触发，全量 loadRecords 易卡主线程。
@@ -98,6 +103,11 @@ struct RecordView: View {
                     showCountOnHome = StorageService.shared.showCountOnHome()
                 }
             }
+            .delayedPageLoading(
+                isOverlayEnabled: true,
+                message: L10n.pageLoading(appState.isChinese),
+                contentReady: $recordPageReady
+            )
             .simultaneousGesture(
                 TapGesture().onEnded { _ in
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
