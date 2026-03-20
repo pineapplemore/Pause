@@ -90,14 +90,12 @@ struct RecordView: View {
                     managementSection
                 }
                 .padding(.bottom, 32)
+                // 不在此 refresh：切 Tab 时 onAppear 会频繁触发，全量 loadRecords 易卡主线程。
+                // 数据在 AppState.init / 增删改记录时已更新；从后台回前台由 ContentView 统一 refresh。
                 .onAppear {
-                    appState.refresh()
                     showInitialOnWidget = StorageService.shared.showInitialOnWidget()
                     widgetInitials = StorageService.shared.widgetBehaviorInitials()
                     showCountOnHome = StorageService.shared.showCountOnHome()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                    appState.refresh()
                 }
             }
             .simultaneousGesture(
