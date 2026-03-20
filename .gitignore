@@ -26,6 +26,9 @@ Pods/
 *.xcworkspace
 !default.xcworkspace
 
+# 本地工程副本（勿提交，与 Pause/ 重复）
+Pause copy/
+
 # macOS
 .DS_Store
 *.swp
