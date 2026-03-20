@@ -9,11 +9,11 @@ Deploy this folder to Netlify so the app has working links for:
 
 ## Steps
 
-1. Drag and drop this folder onto [Netlify Drop](https://app.netlify.com/drop) (or connect the repo and set publish directory to `privacy-support-marketing`).
-2. Note your site URL (e.g. `https://pause-legal.netlify.app`).
+1. Drag and drop this folder onto [Netlify Drop](https://app.netlify.com/drop) (or connect the repo and set publish directory to `website`).
+2. Note your site URL (e.g. `https://antirepeat-legal.netlify.app`).
 3. In the app, replace the placeholder in **PaywallView.swift**:
    - Find: `private let kLegalBaseURL = "https://YOUR-NETLIFY-SITE.netlify.app"`
-   - Replace with your real URL (no trailing slash), e.g. `https://pause-legal.netlify.app`
+   - Replace with your real URL (no trailing slash), e.g. `https://antirepeat-legal.netlify.app`
 4. In App Store Connect, add the same URLs to your app metadata (Privacy Policy URL, and Terms of Use / EULA link in the description or EULA field).
 
 ## Optional
