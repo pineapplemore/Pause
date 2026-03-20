@@ -412,6 +412,7 @@ struct RecordView: View {
     }
 
     private func recordBehavior(id: String, name: String) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         let record = PuffRecord(timestamp: Date(), typeIds: [id], recordedBehaviorName: name)
         appState.addRecord(record)
         lastRecordTime = record.timestamp
@@ -430,7 +431,6 @@ private struct BehaviorButton: View {
     let action: () -> Void
     
     private var mainColor: Color { Behavior.morandiColor(at: colorIndex) }
-    private var darkColor: Color { Behavior.morandiDarkColor(at: colorIndex) }
 
     /// 若标题以数字结尾（如 "Behavior 1"、"行为1"），拆成两行：主名称 + 数字
     private var titleLine1: String {
@@ -460,16 +460,26 @@ private struct BehaviorButton: View {
             .frame(width: size, height: size)
             .offset(y: -size * 0.04)
             .background(
-                    Image("BehaviorButtonIcon\(colorIndex + 1)")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: size, height: size)
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                )
-                .shadow(color: mainColor.opacity(0.35), radius: 6, x: 0, y: 3)
+                Image("BehaviorButtonIcon\(colorIndex + 1)")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size, height: size)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            )
+            .shadow(color: mainColor.opacity(0.35), radius: 6, x: 0, y: 3)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(BehaviorPressStyle())
+    }
+}
+
+private struct BehaviorPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .brightness(configuration.isPressed ? -0.06 : 0)
+            .opacity(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.spring(response: 0.16, dampingFraction: 0.72), value: configuration.isPressed)
     }
 }
 

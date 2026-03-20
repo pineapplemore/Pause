@@ -97,9 +97,10 @@ final class AppState: ObservableObject {
     }
     
     func addRecord(_ record: PuffRecord) {
-        storage.addRecord(record)
+        // 先更新内存，保证首页点击后计数立即 +1；持久化随后完成。
+        records.insert(record, at: 0)
         lastRecordedId = record.id
-        refresh()
+        storage.addRecord(record)
     }
     
     /// 小彩蛋：若本次记录后总次数刚达到某个未展示过的里程碑，返回该数字，并标记为已展示；否则返回 nil

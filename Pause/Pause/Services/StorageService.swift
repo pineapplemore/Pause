@@ -173,7 +173,6 @@ final class StorageService {
     func saveRecords(_ records: [PuffRecord]) {
         let data = (try? JSONEncoder().encode(records)) ?? Data()
         defaults.set(data, forKey: key)
-        defaults.synchronize()
     }
     
     func addRecord(_ record: PuffRecord) {
