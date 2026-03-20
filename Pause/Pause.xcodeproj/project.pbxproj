@@ -27,7 +27,6 @@
 		B0010011 /* RecordPuffIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011011 /* RecordPuffIntent.swift */; };
 		B0010012 /* PauseWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0012010 /* PauseWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B0010013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011014 /* SettingsView.swift */; };
-		B0010017 /* DelayedPageLoadingModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0011017 /* DelayedPageLoadingModifier.swift */; };
 		B0010014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0011015 /* Assets.xcassets */; };
 		B0013012 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
 		B0013014 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0013013 /* WidgetKit.framework */; };
@@ -188,7 +187,6 @@
 				B001100A /* StatisticsView.swift */,
 				B001100F /* PaywallView.swift */,
 				B0011014 /* SettingsView.swift */,
-				B0011017 /* DelayedPageLoadingModifier.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -319,7 +317,6 @@
 				B001000E /* ReportPDFService.swift in Sources */,
 				B001000F /* PaywallView.swift in Sources */,
 				B0010013 /* SettingsView.swift in Sources */,
-				B0010017 /* DelayedPageLoadingModifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -38,62 +38,67 @@ struct StatisticsView: View {
     @State private var exportError: String?
     /// 延迟加载：首块图表出现后视为首屏就绪（LazyVStack 底部 onAppear 可能需滚动才触发）
     @State private var statsContentReady = false
+
+    /// 拆出子视图，减轻 Swift 类型检查负担（远程 Xcode 易报 unable to type-check）
+    @ViewBuilder
+    private var statisticsScrollStack: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
+                Color.clear
+                    .frame(height: 1)
+                    .onAppear { statsContentReady = true }
+                Last7RecordDaysChartCard(appState: appState)
+                RecentRecordDaysDailyCard(appState: appState)
+                statsPeriodPickerSection
+                PeriodSummaryCard(period: selectedPeriod, appState: appState)
+                BehaviorTrendCard(appState: appState, period: selectedPeriod)
+                PeriodComparisonCard(appState: appState, period: selectedPeriod)
+            }
+            .padding()
+        }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .delayedPageLoading(
+            isOverlayEnabled: subscriptionManager.hasAccess,
+            message: L10n.statisticsLoading(appState.isChinese),
+            contentReady: $statsContentReady
+        )
+    }
+
+    @ViewBuilder
+    private var statsPeriodPickerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.periodLabel(appState.isChinese))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(StatsPeriod.allCases) { p in
+                        Button {
+                            selectedPeriod = p
+                        } label: {
+                            Text(p.displayName(isChinese: appState.isChinese))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(selectedPeriod == p ? .white : .primary)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(selectedPeriod == p ? Color.accentColor : Color(.tertiarySystemFill))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 1)
+            }
+        }
+    }
     
     var body: some View {
         NavigationView {
             ZStack(alignment: .top) {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 24) {
-                    // 不受周期影响的固定块：放上面
-                    HourlyChartCard(appState: appState, period: selectedPeriod, fixedDays: 7)
-                    Color.clear
-                        .frame(height: 1)
-                        .onAppear { statsContentReady = true }
-                    Last7RecordDaysChartCard(appState: appState)
-                    RecentRecordDaysDailyCard(appState: appState)
-                    
-                    // 统计周期选择（仅影响下面的本周期汇总、周期对比、标签分布）
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.periodLabel(appState.isChinese))
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.secondary)
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(StatsPeriod.allCases) { p in
-                                    Button {
-                                        selectedPeriod = p
-                                    } label: {
-                                        Text(p.displayName(isChinese: appState.isChinese))
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(selectedPeriod == p ? .white : .primary)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 20)
-                                                    .fill(selectedPeriod == p ? Color.accentColor : Color(.tertiarySystemFill))
-                                            )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding(.horizontal, 1)
-                        }
-                    }
-                    
-                    PeriodSummaryCard(period: selectedPeriod, appState: appState)
-                    
-                    BehaviorTrendCard(appState: appState, period: selectedPeriod)
-                    
-                    PeriodComparisonCard(appState: appState, period: selectedPeriod)
-                }
-                .padding()
-                }
-                .background(Color(.systemGroupedBackground).ignoresSafeArea())
-                .delayedPageLoading(
-                    isOverlayEnabled: subscriptionManager.hasAccess,
-                    message: L10n.statisticsLoading(appState.isChinese),
-                    contentReady: $statsContentReady
-                )
+                statisticsScrollStack
                 if !subscriptionManager.hasAccess {
                     Color.black.opacity(0.5)
                         .ignoresSafeArea()
